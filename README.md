@@ -1,44 +1,53 @@
 # AmbiBack Manager
 
-Android-App zum Einrichten und Steuern von AmbiBack-Geräten. Sie findet Geräte im Netzwerk, richtet ihr WLAN ein und bindet die [AmbiBack UI](https://github.com/ambiback/ambiback-ui) als Full-Control-Ansicht ein.
+**English** · [Deutsch](README.de.md)
 
-Die AmbiBack-Geräte werden seit rund fünf Jahren nicht mehr verkauft. Dieses Repository stellt den Quellcode für den Eigenbau und die Weiterentwicklung bereit. Mehr zum Projekt steht auf [ambiback.de](https://www.ambiback.de/). Die passende Firmware liegt in [ambiback-firmware](https://github.com/ambiback/ambiback-firmware).
+Android app for setting up and controlling AmbiBack devices. It finds devices on the network, configures their Wi-Fi and embeds [AmbiBack UI](https://github.com/ambiback/ambiback-ui) as its full-control view.
 
-## Funktionen
+It is part of the [AmbiBack project](https://github.com/ambiback) and works with the [AmbiBack firmware](https://github.com/ambiback/ambiback-firmware).
 
-- Geräte per UDP im lokalen Netzwerk finden
-- WLAN-Einrichtung über den Access Point des Geräts
-- Gerätezugriff und Firmware-Flashing über USB
-- Full-Control-Ansicht mit der eingebetteten Web-Oberfläche
-- Oberfläche auf Deutsch und Englisch
+## Status
 
-## Sicherheitshinweis
+- Version 1.1, Android 8.0 (API 26) or newer.
+- The debug build and the 15 unit tests passed during the migration.
+- **The app has not been tested on a real device or with real AmbiBack hardware.**
+- AmbiBack devices have not been on sale for around five years. This repository is for DIY use and further development, with no product support. More at [ambiback.de](https://www.ambiback.de/).
 
-Ohne eigenes Passwort leitet die Firmware das Passwort des Geräte-Access-Points aus der MAC-Adresse ab, die auch im WLAN-Namen steht. Die Geräte-API hat keine Anmeldung. Setze deshalb ein eigenes AP-Passwort oder schalte den Access Point nach der Einrichtung ab, und betreibe die Geräte nur in einem vertrauenswürdigen Netz.
+## Features
 
-## Bauen
+- Find devices over UDP on the local network
+- Wi-Fi setup through the device's access point
+- Device access and firmware flashing over USB
+- Full-control view with the embedded web interface
+- German and English interface
 
-Voraussetzungen sind JDK 17 oder neuer und das Android SDK mit API-Level 34.
+## Security
+
+Without a custom password, the firmware derives the device access point password from the MAC address, which is also part of the Wi-Fi name. The device API has no login. Set your own access point password or turn the access point off after setup, and run devices only on a trusted network.
+
+## Building
+
+Requires JDK 17 or newer and the Android SDK with API level 34.
 
 ```sh
 ./gradlew assembleDebug
 ./gradlew testDebugUnitTest
 ```
 
-Die Full-Control-Oberfläche liegt fertig gebaut in `app/src/main/assets/fullcontrol/`. So wird sie aus dem aktuellen `ambiback-ui` neu erzeugt (dafür werden Git und Node.js benötigt):
+The full-control interface is included prebuilt in `app/src/main/assets/fullcontrol/`. To regenerate it from the current `ambiback-ui` (requires Git and Node.js):
 
 ```sh
 ./gradlew assembleDebug -PsyncAmbibackUi
 ```
 
-Nutzt deine Firmware einen eigenen `AMBIBACK_AP_PASSWORD_SEED`, muss die App mit demselben Wert gebaut werden:
+If your firmware uses a custom `AMBIBACK_AP_PASSWORD_SEED`, build the app with the same value:
 
 ```sh
 ./gradlew assembleDebug -PambibackApPasswordSeed=0x12345678
 ```
 
-## Lizenz
+## License
 
 Copyright (C) 2001-2026 André Lorbach
 
-Dieses Programm ist freie Software und steht unter der [GNU General Public License Version 3](LICENSE). Es wird ohne jede Gewährleistung bereitgestellt. Eingebundene Bibliotheken behalten ihre eigenen Lizenzen.
+This program is free software under the [GNU General Public License version 3](LICENSE). It comes with no warranty. Included libraries keep their own licenses.
