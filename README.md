@@ -48,6 +48,6 @@ If your firmware uses a custom `AMBIBACK_AP_PASSWORD_SEED`, build the app with t
 
 ## License
 
-Copyright (C) 2001-2026 André Lorbach
+Copyright (C) 2019-2026 Andre Lorbach
 
 This program is free software under the [GNU General Public License version 3](LICENSE). It comes with no warranty. Included libraries keep their own licenses.
