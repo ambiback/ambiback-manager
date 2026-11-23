@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 data class SettingsUiState(
     val themeMode: String = "system",
-    val scanOnStartup: Boolean = false,
+    val scanOnStartup: Boolean = true,
     val httpTimeoutSec: Int = 5,
     val useDynamicColor: Boolean = false
 )

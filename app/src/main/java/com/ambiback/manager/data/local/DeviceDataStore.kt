@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.ambiback.manager.utils.DeviceKeys
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,8 +19,11 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 data class PersistedDevice(
     val deviceId: String,
     val deviceIp: String,
-    val deviceName: String = ""
-)
+    val deviceName: String = "",
+    val deviceMac: String = ""
+) {
+    val deviceKey: String get() = DeviceKeys.of(deviceMac, deviceId)
+}
 
 /**
  * Persists and retrieves the set of known device identifiers between app sessions.
@@ -38,27 +42,18 @@ class DeviceDataStore @Inject constructor(
     }
 
     /** Upsert a device entry. Called whenever a device is discovered or verified reachable. */
-    suspend fun saveDevice(deviceId: String, deviceIp: String, deviceName: String = "") {
-        val json = PersistedDeviceCodec.toJson(PersistedDevice(deviceId, deviceIp, deviceName))
+    suspend fun saveDevice(device: PersistedDevice) {
         context.dataStore.edit { prefs ->
-            val current = prefs[KNOWN_DEVICES_KEY]?.toMutableSet() ?: mutableSetOf()
-            // Remove any stale entry for the same ID (JSON or legacy pipe)
-            current.removeAll { entry ->
-                PersistedDeviceCodec.parseEntry(entry)?.deviceId == deviceId
-            }
-            current.add(json)
-            prefs[KNOWN_DEVICES_KEY] = current
+            prefs[KNOWN_DEVICES_KEY] =
+                PersistedDeviceCodec.upsert(prefs[KNOWN_DEVICES_KEY] ?: emptySet(), device)
         }
     }
 
-    /** Remove a device from the persistent store. */
-    suspend fun removeDevice(deviceId: String) {
+    /** Remove the device identified by [deviceKey] from the persistent store. */
+    suspend fun removeDevice(deviceKey: String) {
         context.dataStore.edit { prefs ->
-            val current = prefs[KNOWN_DEVICES_KEY]?.toMutableSet() ?: return@edit
-            current.removeAll { entry ->
-                PersistedDeviceCodec.parseEntry(entry)?.deviceId == deviceId
-            }
-            prefs[KNOWN_DEVICES_KEY] = current
+            val current = prefs[KNOWN_DEVICES_KEY] ?: return@edit
+            prefs[KNOWN_DEVICES_KEY] = PersistedDeviceCodec.remove(current, deviceKey)
         }
     }
 

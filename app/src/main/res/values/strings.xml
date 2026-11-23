@@ -20,6 +20,7 @@
     <string name="clear_all_devices_confirm">Remove all saved devices from this phone? You can discover them again later.</string>
     <string name="scanning_devices">Scanning for devices…</string>
     <string name="no_devices_found">No devices found</string>
+    <string name="scan_for_devices">Scan for devices</string>
     <string name="no_devices_hint">Pull down to scan, or tap + to add a new AmbiBack controller.</string>
     <string name="unnamed_device">Unnamed Device</string>
     <string name="unverified">Unverified</string>
