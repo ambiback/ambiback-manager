@@ -18,7 +18,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.webkit.WebViewAssetLoader
+import com.ambiback.manager.utils.ClaimKeys
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -29,8 +32,13 @@ private const val FULL_CONTROL_BASE_URL = "https://appassets.androidplatform.net
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun FullControlWebView(deviceIp: String) {
+fun FullControlWebView(deviceIp: String, claimKey: String? = null) {
     var webView: WebView? by remember { mutableStateOf(null) }
+    val currentClaimKey by rememberUpdatedState(claimKey)
+
+    LaunchedEffect(webView, claimKey) {
+        webView?.let { injectClaimKey(it, deviceIp, claimKey) }
+    }
     var canGoBack by remember { mutableStateOf(false) }
 
     BackHandler(enabled = canGoBack) {
@@ -98,6 +106,7 @@ fun FullControlWebView(deviceIp: String) {
                     }
 
                     override fun onPageFinished(view: WebView, url: String?) {
+                        injectClaimKey(view, deviceIp, currentClaimKey)
                         canGoBack = view.canGoBack()
                     }
 
@@ -118,6 +127,17 @@ fun FullControlWebView(deviceIp: String) {
             }
         },
         modifier = Modifier.fillMaxSize()
+    )
+}
+
+/** Hands the device key to the embedded UI. Only validated hex keys reach the script. */
+private fun injectClaimKey(view: WebView, deviceIp: String, claimKey: String?) {
+    if (!ClaimKeys.isValid(claimKey) || !view.url.orEmpty().startsWith(FULL_CONTROL_BASE_URL)) return
+    view.evaluateJavascript(
+        "try{var k=JSON.parse(localStorage.getItem('ambiback.claimKeys')||'{}');" +
+            "k['http://$deviceIp']='$claimKey';" +
+            "localStorage.setItem('ambiback.claimKeys',JSON.stringify(k));}catch(e){}",
+        null
     )
 }
 

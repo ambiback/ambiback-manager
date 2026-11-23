@@ -23,7 +23,9 @@ It is part of the [AmbiBack project](https://github.com/ambiback) and works with
 
 ## Security
 
-Without a custom password, the firmware derives the device access point password from the MAC address, which is also part of the Wi-Fi name. The device API has no login. Set your own access point password or turn the access point off after setup, and run devices only on a trusted network.
+Devices with an access point open their setup window only when no Wi-Fi is configured, or after a physical request: hold the button for 4 to 7 seconds, or switch the power on three times within a few seconds each. AmbiBack Manager then pairs with the device and stores a device key. After pairing, Wi-Fi setup, access point and debug settings, reboot, WPS and firmware updates require this key.
+
+Remaining limits: the first setup is not protected against someone in radio range who pairs first. The generated access point password is still derived from the MAC address, a custom seed is not full protection, and traffic is unencrypted. LED and mode control stay open on the local network, and device types without an access point have no pairing. Run devices only on a trusted network.
 
 ## Building
 

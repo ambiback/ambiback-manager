@@ -37,6 +37,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +46,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -124,6 +127,7 @@ fun QuickControlContent(
                 config = s.data,
                 status = (uiState.statusState as? UiState.Success)?.data,
                 sendingControls = uiState.sendingControls,
+                claimKey = uiState.claimKey,
                 viewModel = viewModel
             )
         }
@@ -139,6 +143,7 @@ private fun QuickControlForm(
     config: DeviceConfig,
     status: DeviceStatus?,
     sendingControls: Set<SendingControl>,
+    claimKey: String?,
     viewModel: DeviceDetailViewModel
 ) {
     var isOn by remember(status) {
@@ -167,6 +172,7 @@ private fun QuickControlForm(
             .padding(vertical = 8.dp)
     ) {
         status?.let { StatusCard(it) }
+        claimKey?.let { DeviceKeyCard(it) }
 
         Spacer(Modifier.height(8.dp))
 
@@ -336,6 +342,37 @@ private fun QuickControlForm(
         }
 
         Spacer(Modifier.height(80.dp))
+    }
+}
+
+/** Shows the pairing key, which the browser UI needs for protected actions. */
+@Composable
+private fun DeviceKeyCard(claimKey: String) {
+    val clipboard = LocalClipboardManager.current
+    var visible by remember(claimKey) { mutableStateOf(false) }
+
+    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Device key", style = MaterialTheme.typography.titleSmall)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Needed for reboot, WPS and firmware updates in the browser.",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = if (visible) claimKey else "\u2022".repeat(16),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Row {
+                TextButton(onClick = { visible = !visible }) {
+                    Text(if (visible) "Hide" else "Show")
+                }
+                TextButton(onClick = { clipboard.setText(AnnotatedString(claimKey)) }) {
+                    Text("Copy")
+                }
+            }
+        }
     }
 }
 

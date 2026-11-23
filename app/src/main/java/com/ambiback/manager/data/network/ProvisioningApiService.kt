@@ -1,5 +1,6 @@
 package com.ambiback.manager.data.network
 
+import com.ambiback.manager.data.model.ProvisioningClaimResponse
 import com.ambiback.manager.data.model.ProvisioningFinishResponse
 import com.ambiback.manager.data.model.ProvisioningStatus
 import com.ambiback.manager.data.model.ProvisioningSubmitResponse
@@ -11,6 +12,7 @@ import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
 /**
@@ -36,14 +38,14 @@ interface ProvisioningApiService {
      * Firmware creates a fresh 16-char hex token and clears any pending staged credentials.
      */
     @GET("provisioning/start")
-    suspend fun startSession(): ProvisioningStatus
+    suspend fun startSession(@Query("claimkey") claimKey: String? = null): ProvisioningStatus
 
     /**
      * Trigger controller-side WPS mode.
      * Firmware requires an explicit confirmation query parameter.
      */
     @GET("startwps?forreal=1")
-    suspend fun startWps(): ProvisioningWpsResponse
+    suspend fun startWps(@Query("claimkey") claimKey: String? = null): ProvisioningWpsResponse
 
     /**
      * Submit WiFi credentials to stage them on the controller.
@@ -57,7 +59,8 @@ interface ProvisioningApiService {
     suspend fun submitCredentials(
         @Field("token")    token:    String,
         @Field("ssid")     ssid:     String,
-        @Field("password") password: String
+        @Field("password") password: String,
+        @Field("claimkey") claimKey: String? = null
     ): ProvisioningSubmitResponse
 
     /**
@@ -70,8 +73,21 @@ interface ProvisioningApiService {
     @FormUrlEncoded
     @POST("provisioning/finish")
     suspend fun finishProvisioning(
-        @Field("token") token: String
+        @Field("token") token: String,
+        @Field("claimkey") claimKey: String? = null
     ): ProvisioningFinishResponse
+
+    /**
+     * Pair this app with the device by storing a new claim key.
+     * Allowed for unclaimed devices and after a physical setup request.
+     */
+    @FormUrlEncoded
+    @POST("provisioning/claim")
+    suspend fun claimDevice(
+        @Field("token")    token:    String,
+        @Field("newkey")   newKey:   String,
+        @Field("claimkey") claimKey: String? = null
+    ): ProvisioningClaimResponse
 }
 
 // ---------------------------------------------------------------------------

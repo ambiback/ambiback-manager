@@ -79,7 +79,7 @@ fun DeviceDetailScreen(
                     QuickControlContent(uiState = uiState, viewModel = viewModel)
                 }
                 TabPane(visible = selectedTab == 1) {
-                    FullControlWebView(deviceIp = viewModel.deviceIp)
+                    FullControlWebView(deviceIp = viewModel.deviceIp, claimKey = uiState.claimKey)
                 }
                 TabPane(visible = selectedTab == 2) {
                     WebViewContent(deviceIp = viewModel.deviceIp)

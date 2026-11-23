@@ -1,5 +1,6 @@
 package com.ambiback.manager.data.repository
 
+import com.ambiback.manager.data.model.ProvisioningClaimResponse
 import com.ambiback.manager.data.model.ProvisioningFinishResponse
 import com.ambiback.manager.data.model.ProvisioningStatus
 import com.ambiback.manager.data.model.ProvisioningSubmitResponse
@@ -35,14 +36,23 @@ class ProvisioningRepository @Inject constructor() {
      * Start (or restart) a provisioning session.
      * Returns a fresh token in the response on success.
      */
-    suspend fun startSession(gatewayIp: String): Result<ProvisioningStatus> =
-        runCatching { createProvisioningService(gatewayIp).startSession() }
+    suspend fun startSession(gatewayIp: String, claimKey: String? = null): Result<ProvisioningStatus> =
+        runCatching { createProvisioningService(gatewayIp).startSession(claimKey) }
+
+    /** Pair this app with the device by storing [newKey] on it. */
+    suspend fun claimDevice(
+        gatewayIp: String,
+        token:     String,
+        newKey:    String,
+        claimKey:  String? = null
+    ): Result<ProvisioningClaimResponse> =
+        runCatching { createProvisioningService(gatewayIp).claimDevice(token, newKey, claimKey) }
 
     /**
      * Trigger WPS mode on the connected controller.
      */
-    suspend fun startWps(gatewayIp: String): Result<ProvisioningWpsResponse> =
-        runCatching { createProvisioningService(gatewayIp).startWps() }
+    suspend fun startWps(gatewayIp: String, claimKey: String? = null): Result<ProvisioningWpsResponse> =
+        runCatching { createProvisioningService(gatewayIp).startWps(claimKey) }
 
     /**
      * Stage WiFi credentials on the controller.
@@ -55,11 +65,12 @@ class ProvisioningRepository @Inject constructor() {
         gatewayIp: String,
         token:     String,
         ssid:      String,
-        password:  String = ""
+        password:  String = "",
+        claimKey:  String? = null
     ): Result<ProvisioningSubmitResponse> =
         runCatching {
             createProvisioningService(gatewayIp)
-                .submitCredentials(token, ssid, password)
+                .submitCredentials(token, ssid, password, claimKey)
         }
 
     /**
@@ -71,9 +82,10 @@ class ProvisioningRepository @Inject constructor() {
      */
     suspend fun finishProvisioning(
         gatewayIp: String,
-        token:     String
+        token:     String,
+        claimKey:  String? = null
     ): Result<ProvisioningFinishResponse> =
         runCatching {
-            createProvisioningService(gatewayIp).finishProvisioning(token)
+            createProvisioningService(gatewayIp).finishProvisioning(token, claimKey)
         }
 }

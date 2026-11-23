@@ -23,7 +23,9 @@ Sie gehört zum [AmbiBack-Projekt](https://github.com/ambiback) und arbeitet mit
 
 ## Sicherheit
 
-Ohne eigenes Passwort leitet die Firmware das Passwort des Geräte-Access-Points aus der MAC-Adresse ab, die auch im WLAN-Namen steht. Die Geräte-API hat keine Anmeldung. Setze deshalb ein eigenes AP-Passwort oder schalte den Access Point nach der Einrichtung ab, und betreibe die Geräte nur in einem vertrauenswürdigen Netz.
+Geräte mit Access Point öffnen ihr Einrichtungsfenster nur, wenn noch kein WLAN eingerichtet ist, oder nach einer Anforderung direkt am Gerät: die Taste 4 bis 7 Sekunden halten oder den Strom dreimal im Abstand weniger Sekunden einschalten. Der AmbiBack Manager koppelt sich dann mit dem Gerät und speichert einen Geräteschlüssel. Nach der Kopplung brauchen WLAN-Einrichtung, Access-Point- und Debug-Einstellungen, Neustart, WPS und Firmware-Updates diesen Schlüssel.
+
+Verbleibende Grenzen: Die Ersteinrichtung ist nicht dagegen geschützt, dass jemand in Funkreichweite sich zuerst koppelt. Das erzeugte Access-Point-Passwort wird weiter aus der MAC-Adresse abgeleitet, ein eigener Startwert ist kein vollwertiger Schutz, und die Übertragung ist unverschlüsselt. LED- und Modussteuerung bleiben im lokalen Netz offen, und Gerätetypen ohne Access Point haben keine Kopplung. Betreibe die Geräte nur in einem vertrauenswürdigen Netz.
 
 ## Bauen
 

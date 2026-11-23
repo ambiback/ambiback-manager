@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ambiback.manager.data.local.ClaimKeyStore
 import com.ambiback.manager.data.model.DeviceConfig
 import com.ambiback.manager.data.model.DeviceStatus
 import com.ambiback.manager.data.model.LedMode
@@ -34,7 +35,8 @@ data class DeviceDetailUiState(
     val configState: UiState<DeviceConfig> = UiState.Loading,
     val statusState: UiState<DeviceStatus> = UiState.Loading,
     val sendingControls: Set<SendingControl> = emptySet(),
-    val actionError: String? = null
+    val actionError: String? = null,
+    val claimKey: String? = null
 ) {
     val isSending: Boolean get() = sendingControls.isNotEmpty()
 }
@@ -42,6 +44,7 @@ data class DeviceDetailUiState(
 @HiltViewModel
 class DeviceDetailViewModel @Inject constructor(
     private val repository: DeviceRepository,
+    private val claimKeyStore: ClaimKeyStore,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -63,7 +66,8 @@ class DeviceDetailViewModel @Inject constructor(
             _uiState.update { it.copy(configState = UiState.Loading) }
             repository.getConfig(deviceIp).fold(
                 onSuccess = { config ->
-                    _uiState.update { it.copy(configState = UiState.Success(config)) }
+                    val claimKey = claimKeyStore.get(config.deviceMac)
+                    _uiState.update { it.copy(configState = UiState.Success(config), claimKey = claimKey) }
                 },
                 onFailure = { e ->
                     _uiState.update { it.copy(configState = UiState.Error(e.message ?: "Failed to load config")) }

@@ -11,9 +11,11 @@ import android.net.wifi.WifiNetworkSpecifier
 import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.ambiback.manager.data.local.ClaimKeyStore
 import com.ambiback.manager.data.model.ProvisioningStatus
 import com.ambiback.manager.data.network.GatewayResolver
 import com.ambiback.manager.data.repository.ProvisioningRepository
+import com.ambiback.manager.utils.ClaimKeys
 import com.ambiback.manager.utils.PasswordGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 
 // ---------------------------------------------------------------------------
@@ -102,6 +105,7 @@ data class ProvisioningUiState(
 )
 
 private const val SETUP_WINDOW_TIMEOUT_MS = 60_000L
+private const val AP_SSID_PREFIX = "AmbiBack "
 
 // ---------------------------------------------------------------------------
 // ViewModel
@@ -110,7 +114,8 @@ private const val SETUP_WINDOW_TIMEOUT_MS = 60_000L
 @HiltViewModel
 class ProvisioningViewModel @Inject constructor(
     application: Application,
-    private val repository: ProvisioningRepository
+    private val repository: ProvisioningRepository,
+    private val claimKeyStore: ClaimKeyStore
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(ProvisioningUiState())
@@ -121,6 +126,7 @@ class ProvisioningViewModel @Inject constructor(
     private var rebootJob: Job? = null
     private var scanJob: Job? = null
     private var homeSsid: String = ""
+    private var currentMac: String = ""
 
     private fun step(step: ProvisioningStep, expiresIn: String = "0") {
         val serverMs = expiresIn.toLongOrNull() ?: 0L
@@ -178,7 +184,10 @@ class ProvisioningViewModel @Inject constructor(
         viewModelScope.launch {
             val ip = GatewayResolver.resolve(getApplication())
             repository.getProvisioningStatus(ip)
-                .onSuccess { status -> step(ProvisioningStep.Connected(status, ip), status.expiresIn) }
+                .onSuccess { status ->
+                            rememberDevice(status)
+                            step(ProvisioningStep.Connected(status, ip), status.expiresIn)
+                        }
                 .onFailure { e ->
                     step(ProvisioningStep.Error(
                         message   = "Cannot reach controller at $ip — ${e.message}",
@@ -247,6 +256,7 @@ class ProvisioningViewModel @Inject constructor(
     }
 
     private fun connectToDeviceMac(mac: String) {
+        currentMac = mac
         val password = PasswordGenerator.generateApPassword(mac)
         val exactSsid = "AmbiBack $mac"
         requestAutoConnect(exactSsid, password)
@@ -284,7 +294,10 @@ class ProvisioningViewModel @Inject constructor(
                 viewModelScope.launch {
                     val ip = GatewayResolver.resolve(context)
                     repository.getProvisioningStatus(ip)
-                        .onSuccess { status -> step(ProvisioningStep.Connected(status, ip), status.expiresIn) }
+                        .onSuccess { status ->
+                            rememberDevice(status)
+                            step(ProvisioningStep.Connected(status, ip), status.expiresIn)
+                        }
                         .onFailure { e ->
                             step(ProvisioningStep.Error(
                                 message   = "Cannot reach controller at $ip — ${e.message}",
@@ -323,20 +336,22 @@ class ProvisioningViewModel @Inject constructor(
         val connected = _uiState.value.step as? ProvisioningStep.Connected ?: return
         step(ProvisioningStep.StartingSession)
         viewModelScope.launch {
-            repository.startSession(connected.gatewayIp)
+            repository.startSession(connected.gatewayIp, currentClaimKey())
                 .onSuccess { status ->
-                    if (status.token.isNotEmpty()) {
+                    if (status.token.isEmpty()) {
+                        step(ProvisioningStep.Error("Session started but no token received.", canRetry = true))
+                    } else if (!claimIfPossible(connected.gatewayIp, status)) {
+                        step(ProvisioningStep.Error("Could not pair this app with the device.", canRetry = true))
+                    } else {
                         step(ProvisioningStep.EnterCredentials(
                             token = status.token,
                             gatewayIp = connected.gatewayIp,
                             defaultSsid = homeSsid
                         ), status.expiresIn)
-                    } else {
-                        step(ProvisioningStep.Error("Session started but no token received.", canRetry = true))
                     }
                 }
                 .onFailure { e ->
-                    step(ProvisioningStep.Error("Failed to start session: ${e.message}", canRetry = true))
+                    step(ProvisioningStep.Error(errorMessage("Failed to start session", e), canRetry = true))
                 }
         }
     }
@@ -348,7 +363,7 @@ class ProvisioningViewModel @Inject constructor(
         val connected = _uiState.value.step as? ProvisioningStep.Connected ?: return
         step(ProvisioningStep.StartingWps)
         viewModelScope.launch {
-            repository.startWps(connected.gatewayIp)
+            repository.startWps(connected.gatewayIp, currentClaimKey())
                 .onSuccess { response ->
                     if (response.status == 1) {
                         step(
@@ -367,7 +382,7 @@ class ProvisioningViewModel @Inject constructor(
                     }
                 }
                 .onFailure { e ->
-                    step(ProvisioningStep.Error("Failed to start WPS mode: ${e.message}", canRetry = true))
+                    step(ProvisioningStep.Error(errorMessage("Failed to start WPS mode", e), canRetry = true))
                 }
         }
     }
@@ -392,7 +407,7 @@ class ProvisioningViewModel @Inject constructor(
 
         step(ProvisioningStep.Submitting)
         viewModelScope.launch {
-            repository.submitCredentials(gatewayIp, token, ssid, password)
+            repository.submitCredentials(gatewayIp, token, ssid, password, currentClaimKey())
                 .onSuccess { response ->
                     when {
                         response.success == "1" ->
@@ -410,7 +425,7 @@ class ProvisioningViewModel @Inject constructor(
                     }
                 }
                 .onFailure { e ->
-                    step(ProvisioningStep.Error("Submit failed: ${e.message}", canRetry = true))
+                    step(ProvisioningStep.Error(errorMessage("Submit failed", e), canRetry = true))
                 }
         }
     }
@@ -420,7 +435,7 @@ class ProvisioningViewModel @Inject constructor(
         val monitoring = _uiState.value.step as? ProvisioningStep.Monitoring ?: return
         step(ProvisioningStep.Finishing)
         viewModelScope.launch {
-            repository.finishProvisioning(monitoring.gatewayIp, monitoring.token)
+            repository.finishProvisioning(monitoring.gatewayIp, monitoring.token, currentClaimKey())
                 .onSuccess { response ->
                     if (response.success == "1") {
                         if (response.state == "rebooting") {
@@ -443,7 +458,7 @@ class ProvisioningViewModel @Inject constructor(
                     }
                 }
                 .onFailure { e ->
-                    step(ProvisioningStep.Error("Finish failed: ${e.message}", canRetry = false))
+                    step(ProvisioningStep.Error(errorMessage("Finish failed", e), canRetry = false))
                 }
         }
     }
@@ -485,10 +500,48 @@ class ProvisioningViewModel @Inject constructor(
         scanJob?.cancel()
         releaseNetworkCallback()
         homeSsid = ""
+        currentMac = ""
         step(ProvisioningStep.Idle)
     }
 
     // ---- Private helpers -----------------------------------------------
+
+    private fun rememberDevice(status: ProvisioningStatus) {
+        if (status.apSsid.startsWith(AP_SSID_PREFIX)) {
+            currentMac = status.apSsid.removePrefix(AP_SSID_PREFIX)
+        }
+    }
+
+    private fun currentClaimKey(): String? = claimKeyStore.get(currentMac)
+
+    /**
+     * Pairs the app with a claimable device. The key is saved before the request,
+     * so a lost response cannot leave the device with a key the app does not know.
+     */
+    private suspend fun claimIfPossible(gatewayIp: String, status: ProvisioningStatus): Boolean {
+        if (status.claimable != "1" || currentMac.isBlank()) return true
+
+        val previousKey = claimKeyStore.get(currentMac)
+        val newKey = ClaimKeys.generate()
+        claimKeyStore.put(currentMac, newKey)
+
+        val result = repository.claimDevice(gatewayIp, status.token, newKey, previousKey)
+        if (result.getOrNull()?.success == "1") return true
+
+        // The device answered and refused, so the old state is still valid.
+        if (result.isSuccess || result.exceptionOrNull() is HttpException) {
+            if (previousKey != null) claimKeyStore.put(currentMac, previousKey) else claimKeyStore.remove(currentMac)
+        }
+        return false
+    }
+
+    private fun errorMessage(prefix: String, error: Throwable): String =
+        if (error is HttpException && error.code() == 403) {
+            "This device is paired with another app. Hold its button for 4 to 7 seconds, " +
+                "or switch its power on three times within a few seconds each, then try again."
+        } else {
+            "$prefix: ${error.message}"
+        }
 
     private fun shouldTrackExpiry(step: ProvisioningStep): Boolean =
         when (step) {
@@ -538,20 +591,22 @@ class ProvisioningViewModel @Inject constructor(
     private fun restartSession(gatewayIp: String) {
         step(ProvisioningStep.StartingSession)
         viewModelScope.launch {
-            repository.startSession(gatewayIp)
+            repository.startSession(gatewayIp, currentClaimKey())
                 .onSuccess { status ->
-                    if (status.token.isNotEmpty()) {
+                    if (status.token.isEmpty()) {
+                        step(ProvisioningStep.Error("Session restart failed — no token.", canRetry = true))
+                    } else if (!claimIfPossible(gatewayIp, status)) {
+                        step(ProvisioningStep.Error("Could not pair this app with the device.", canRetry = true))
+                    } else {
                         step(ProvisioningStep.EnterCredentials(
                             token = status.token,
                             gatewayIp = gatewayIp,
                             defaultSsid = homeSsid
                         ), status.expiresIn)
-                    } else {
-                        step(ProvisioningStep.Error("Session restart failed — no token.", canRetry = true))
                     }
                 }
                 .onFailure { e ->
-                    step(ProvisioningStep.Error("Session restart failed: ${e.message}", canRetry = true))
+                    step(ProvisioningStep.Error(errorMessage("Session restart failed", e), canRetry = true))
                 }
         }
     }

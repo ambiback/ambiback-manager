@@ -92,6 +92,9 @@ data class ProvisioningStatus(
     @SerializedName("apssid")     val apSsid:     String = "",
     @SerializedName("apip")       val apIp:       String = "192.168.4.1",
     @SerializedName("reason")     val reason:     String = "",
+    /** Present on firmware with device claiming. */
+    @SerializedName("claimed")    val claimed:    String = "",
+    @SerializedName("claimable")  val claimable:  String = "",
     /** Only present in /provisioning/start response */
     @SerializedName("success")    val success:    String = ""
 )
@@ -114,6 +117,13 @@ data class ProvisioningFinishResponse(
     @SerializedName("expiresin") val expiresIn: String = "0",
     @SerializedName("connected") val connected: String = "0",
     @SerializedName("rebootin")  val rebootIn:  String = "0"
+)
+
+/** Response from POST /provisioning/claim (form-encoded). */
+data class ProvisioningClaimResponse(
+    @SerializedName("success") val success: String = "0",
+    @SerializedName("claimed") val claimed: String = "0",
+    @SerializedName("message") val message: String = ""
 )
 
 /** Response from GET /startwps?forreal=1. */
