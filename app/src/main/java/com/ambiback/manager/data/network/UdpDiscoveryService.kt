@@ -5,6 +5,7 @@ import android.net.DhcpInfo
 import android.net.wifi.WifiManager
 import android.util.Log
 import com.ambiback.manager.data.model.Device
+import com.ambiback.manager.utils.IpValidation
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -130,7 +131,7 @@ internal suspend fun FlowCollector<Device>.receiveReplies(
                 continue
             }
             val json = String(receivePacket.data, 0, receivePacket.length, Charsets.UTF_8).trim()
-            val device = parseDiscoveryReply(json) ?: continue
+            val device = parseDiscoveryReply(json, receivePacket.address?.hostAddress) ?: continue
             if (seen.add(device.deviceKey)) {
                 onFound(device)
                 emit(device)
@@ -139,8 +140,11 @@ internal suspend fun FlowCollector<Device>.receiveReplies(
     }
 }
 
-/** Parses a controller reply, or returns null when it is not a usable device announcement. */
-internal fun parseDiscoveryReply(json: String): Device? {
+/**
+ * Parses a controller reply, or returns null when it is not a usable device announcement.
+ * A controller without a station connection reports 0.0.0.0, so [sourceIp] is used instead.
+ */
+internal fun parseDiscoveryReply(json: String, sourceIp: String? = null): Device? {
     if (!json.startsWith("{")) return null
     val raw = try {
         replyGson.fromJson(json, Device::class.java)
@@ -154,6 +158,10 @@ internal fun parseDiscoveryReply(json: String): Device? {
     val name: String? = raw.deviceName
     val type: String? = raw.deviceType
     val version: String? = raw.deviceVersion
-    if (id.isNullOrBlank() || ip.isNullOrBlank()) return null
-    return Device(id, mac.orEmpty(), name.orEmpty(), ip, type.orEmpty(), version.orEmpty(), raw.ledStatus)
+    if (id.isNullOrBlank()) return null
+    val deviceIp = listOf(ip, sourceIp)
+        .firstOrNull { it != null && IpValidation.isValidIp(it) && it.trim() != "0.0.0.0" }
+        ?.trim()
+        ?: return null
+    return Device(id, mac.orEmpty(), name.orEmpty(), deviceIp, type.orEmpty(), version.orEmpty(), raw.ledStatus)
 }

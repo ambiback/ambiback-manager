@@ -80,6 +80,13 @@ class UdpDiscoveryReceiveTest {
     }
 
     @Test
+    fun unusableReportedIpFallsBackToPacketSource() {
+        val json = """{"DeviceID":"id1","DeviceMAC":"AABBCC000001","DeviceIP":"0.0.0.0"}"""
+        assertEquals("192.168.4.1", parseDiscoveryReply(json, "192.168.4.1")!!.deviceIp)
+        assertNull(parseDiscoveryReply(json))
+    }
+
+    @Test
     fun replyWithoutOptionalFieldsDoesNotLeaveNulls() {
         val device = parseDiscoveryReply("""{"DeviceID":"id1","DeviceIP":"10.0.0.5"}""")
         assertEquals("", device!!.deviceMac)

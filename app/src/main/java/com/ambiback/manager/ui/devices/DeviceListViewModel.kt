@@ -1,5 +1,6 @@
 package com.ambiback.manager.ui.devices
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ambiback.manager.data.local.AppSettingsDataStore
@@ -45,7 +46,7 @@ class DeviceListViewModel @Inject constructor(
         viewModelScope.launch {
             restorePersistedDevices()
             val scanOnStartup = settingsDataStore.scanOnStartup.firstOrNull() ?: true
-            if (scanOnStartup) scan()
+            if (scanOnStartup) startScan(reportErrors = false)
         }
     }
 
@@ -69,7 +70,10 @@ class DeviceListViewModel @Inject constructor(
         _uiState.update { it.copy(unverifiedKeys = unverified) }
     }
 
-    fun scan() {
+    fun scan() = startScan(reportErrors = true)
+
+    /** The automatic startup scan only logs failures, e.g. when the phone has no Wi-Fi. */
+    private fun startScan(reportErrors: Boolean) {
         if (_uiState.value.isScanning) return
         _uiState.update { it.copy(isScanning = true, scanComplete = false, error = null) }
 
@@ -83,7 +87,11 @@ class DeviceListViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
+                if (reportErrors) {
+                    _uiState.update { it.copy(error = e.message) }
+                } else {
+                    Log.w("DeviceListViewModel", "Startup scan failed", e)
+                }
             } finally {
                 _uiState.update { it.copy(isScanning = false, scanComplete = true) }
             }
@@ -96,6 +104,11 @@ class DeviceListViewModel @Inject constructor(
      * An entry saved without a MAC is replaced once its DeviceID is seen with one.
      */
     private fun addDevice(device: Device) {
+        val alreadyUpgraded = device.deviceMac.isBlank() && deviceMap.values.any {
+            it.deviceMac.isNotBlank() && it.deviceId == device.deviceId && it.deviceIp == device.deviceIp
+        }
+        if (alreadyUpgraded) return
+
         val key = device.deviceKey
         val stubKey = DeviceKeys.idKey(device.deviceId)
         val stub = if (key != stubKey) deviceMap.remove(stubKey) else null

@@ -59,6 +59,14 @@ class PersistedDeviceParseTest {
     }
 
     @Test
+    fun entryWithoutMacDoesNotDuplicateUpgradedController() {
+        val upgraded = PersistedDevice("id1", "10.0.0.5", "TV", "AABBCC000001")
+        val entries = PersistedDeviceCodec.upsert(emptySet(), upgraded)
+        val afterUndo = PersistedDeviceCodec.upsert(entries, PersistedDevice("id1", "10.0.0.5", "TV"))
+        assertEquals(entries, afterUndo)
+    }
+
+    @Test
     fun entryWithoutMacIsUpgradedWhenControllerAnswers() {
         val old = setOf("id1|10.0.0.5|TV")
         val upgraded = PersistedDevice("id1", "10.0.0.9", "TV", "AABBCC000001")

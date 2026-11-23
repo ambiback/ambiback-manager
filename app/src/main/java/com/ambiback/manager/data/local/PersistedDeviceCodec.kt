@@ -42,9 +42,18 @@ object PersistedDeviceCodec {
 
     /**
      * Adds or replaces [device]. An entry without a MAC and with the same DeviceID is replaced
-     * too, which upgrades entries saved by older app versions.
+     * too, which upgrades entries saved by older app versions. A MAC-less [device] is ignored
+     * when the same DeviceID and IP are already stored with a MAC.
      */
     fun upsert(entries: Set<String>, device: PersistedDevice): Set<String> {
+        val alreadyUpgraded = device.deviceMac.isBlank() && entries.any { entry ->
+            val existing = parseEntry(entry) ?: return@any false
+            existing.deviceMac.isNotBlank() &&
+                existing.deviceId == device.deviceId &&
+                existing.deviceIp == device.deviceIp
+        }
+        if (alreadyUpgraded) return entries
+
         val retained = entries.filterNot { entry ->
             val existing = parseEntry(entry) ?: return@filterNot false
             existing.deviceKey == device.deviceKey ||
