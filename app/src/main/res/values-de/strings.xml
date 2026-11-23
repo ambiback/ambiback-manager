@@ -41,6 +41,6 @@
     <string name="about_title">Über</string>
     <string name="about_version">Version %1$s</string>
     <string name="about_tagline">AmbiBack Controller Manager\nSteuern Sie Ihr AmbiBack LED-Beleuchtungssystem von Ihrem Android-Gerät.</string>
-    <string name="about_copyright">© 2001–2026 André Lorbach\nLizenziert unter GPL-3.0.</string>
+    <string name="about_copyright">© 2019–2026 Andre Lorbach\nLizenziert unter GPL-3.0.</string>
     <string name="about_website">www.ambiback.de</string>
 </resources>
