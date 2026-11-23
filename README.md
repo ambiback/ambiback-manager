@@ -8,7 +8,7 @@ It is part of the [AmbiBack project](https://github.com/ambiback) and works with
 
 ## Status
 
-- Version 1.1, Android 8.0 (API 26) or newer.
+- Version 1.2, Android 8.0 (API 26) or newer.
 - The debug build and the 15 unit tests passed during the migration.
 - **The app has not been tested on a real device or with real AmbiBack hardware.**
 - AmbiBack devices have not been on sale for around five years. This repository is for DIY use and further development, with no product support. More at [ambiback.de](https://www.ambiback.de/).

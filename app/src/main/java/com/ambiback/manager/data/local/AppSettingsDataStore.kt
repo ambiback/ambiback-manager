@@ -36,7 +36,7 @@ class AppSettingsDataStore @Inject constructor(
 
     /** Whether to trigger a UDP scan automatically on app launch. */
     val scanOnStartup: Flow<Boolean> = context.appSettingsStore.data.map { prefs ->
-        prefs[SCAN_ON_STARTUP] ?: false
+        prefs[SCAN_ON_STARTUP] ?: true
     }
 
     /** Seconds to wait for device HTTP responses (1–30, default 5). */

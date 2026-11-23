@@ -30,11 +30,13 @@ class DeviceRepository @Inject constructor(
 
     /** Persist a newly discovered (or updated) device. */
     suspend fun saveDevice(device: Device) =
-        dataStore.saveDevice(device.deviceId, device.deviceIp, device.deviceName)
+        dataStore.saveDevice(
+            PersistedDevice(device.deviceId, device.deviceIp, device.deviceName, device.deviceMac)
+        )
 
     /** Remove a device from persistent storage and drop its cached HTTP client when [deviceIp] is known. */
-    suspend fun forgetDevice(deviceId: String, deviceIp: String? = null) {
-        dataStore.removeDevice(deviceId)
+    suspend fun forgetDevice(deviceKey: String, deviceIp: String? = null) {
+        dataStore.removeDevice(deviceKey)
         if (!deviceIp.isNullOrBlank()) retrofitFactory.evict(deviceIp)
     }
 
