@@ -9,7 +9,9 @@ import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withTimeoutOrNull
@@ -25,6 +27,7 @@ private const val UDP_PORT = 1337
 private const val DISCOVERY_BROADCAST = "HELLO AMBIBACK DEVICES"
 private const val DISCOVERY_TIMEOUT_MS = 4000L
 private const val SOCKET_RECEIVE_TIMEOUT_MS = 300
+private val replyGson = Gson()
 
 /**
  * Mirrors the old UdpServerThread.java discovery logic as a cold Kotlin Flow.
@@ -44,7 +47,6 @@ private const val SOCKET_RECEIVE_TIMEOUT_MS = 300
 class UdpDiscoveryService @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private val gson = Gson()
     private val TAG = "AmbiBackUDP"
 
     fun discover(): Flow<Device> = flow {
@@ -80,32 +82,8 @@ class UdpDiscoveryService @Inject constructor(
             }
             Log.d(TAG, "HELLO sent, listening for ${DISCOVERY_TIMEOUT_MS}ms…")
 
-            val receiveBuffer = ByteArray(4096)
-            val receivePacket = DatagramPacket(receiveBuffer, receiveBuffer.size)
-            val seen = mutableSetOf<String>()
-
-            withTimeoutOrNull(DISCOVERY_TIMEOUT_MS) {
-                while (true) {
-                    // Reset length so truncated packets from a previous receive
-                    // do not permanently shrink the buffer capacity.
-                    receivePacket.setLength(receiveBuffer.size)
-                    try {
-                        receiveSocket.receive(receivePacket)
-                        val json = String(
-                            receivePacket.data, 0, receivePacket.length, Charsets.UTF_8
-                        ).trim()
-                        if (!json.startsWith("{")) continue
-                        val device = gson.fromJson(json, Device::class.java)
-                        if (device?.deviceId != null && seen.add(device.deviceId)) {
-                            Log.i(TAG, "Found device: ${device.deviceName} @ ${device.deviceIp}")
-                            emit(device)
-                        }
-                    } catch (_: SocketTimeoutException) {
-                        // Brief receive timeout — keep looping until discovery window ends
-                    } catch (_: JsonParseException) {
-                        // Malformed packet — ignore
-                    }
-                }
+            receiveReplies(receiveSocket, DISCOVERY_TIMEOUT_MS) { device ->
+                Log.i(TAG, "Found device: ${device.deviceName} @ ${device.deviceIp}")
             }
         } finally {
             receiveSocket?.close()
@@ -124,4 +102,58 @@ class UdpDiscoveryService @Inject constructor(
             InetAddress.getByName("255.255.255.255")
         }
     }
+}
+
+/**
+ * Emits each distinct controller that answers within [windowMs].
+ * The socket needs a short soTimeout: receive() blocks without a suspension point, so the
+ * explicit [ensureActive] check is what lets the timeout or a cancellation end the loop.
+ */
+internal suspend fun FlowCollector<Device>.receiveReplies(
+    socket: DatagramSocket,
+    windowMs: Long,
+    onFound: (Device) -> Unit = {}
+) {
+    val receiveBuffer = ByteArray(4096)
+    val receivePacket = DatagramPacket(receiveBuffer, receiveBuffer.size)
+    val seen = mutableSetOf<String>()
+
+    withTimeoutOrNull(windowMs) {
+        while (true) {
+            ensureActive()
+            // Reset length so truncated packets from a previous receive
+            // do not permanently shrink the buffer capacity.
+            receivePacket.setLength(receiveBuffer.size)
+            try {
+                socket.receive(receivePacket)
+            } catch (_: SocketTimeoutException) {
+                continue
+            }
+            val json = String(receivePacket.data, 0, receivePacket.length, Charsets.UTF_8).trim()
+            val device = parseDiscoveryReply(json) ?: continue
+            if (seen.add(device.deviceKey)) {
+                onFound(device)
+                emit(device)
+            }
+        }
+    }
+}
+
+/** Parses a controller reply, or returns null when it is not a usable device announcement. */
+internal fun parseDiscoveryReply(json: String): Device? {
+    if (!json.startsWith("{")) return null
+    val raw = try {
+        replyGson.fromJson(json, Device::class.java)
+    } catch (_: JsonParseException) {
+        null
+    } ?: return null
+    // Gson can leave non-null Kotlin fields null when a key is missing.
+    val id: String? = raw.deviceId
+    val ip: String? = raw.deviceIp
+    val mac: String? = raw.deviceMac
+    val name: String? = raw.deviceName
+    val type: String? = raw.deviceType
+    val version: String? = raw.deviceVersion
+    if (id.isNullOrBlank() || ip.isNullOrBlank()) return null
+    return Device(id, mac.orEmpty(), name.orEmpty(), ip, type.orEmpty(), version.orEmpty(), raw.ledStatus)
 }

@@ -1,5 +1,6 @@
 package com.ambiback.manager.data.model
 
+import com.ambiback.manager.utils.DeviceKeys
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -14,7 +15,10 @@ data class Device(
     @SerializedName("DeviceType") val deviceType: String,
     @SerializedName("DeviceVersion") val deviceVersion: String,
     @SerializedName("LedStatus") val ledStatus: Int = 0
-)
+) {
+    /** Unique app-side identity. DeviceID alone can collide between controllers. */
+    val deviceKey: String get() = DeviceKeys.of(deviceMac, deviceId)
+}
 
 /**
  * Full device configuration returned by GET /getparamatersasjson.

@@ -18,6 +18,7 @@
     <string name="clear_all_devices_confirm">Alle gespeicherten Geräte von diesem Telefon entfernen? Sie können später erneut gefunden werden.</string>
     <string name="scanning_devices">Suche nach Geräten…</string>
     <string name="no_devices_found">Keine Geräte gefunden</string>
+    <string name="scan_for_devices">Nach Geräten suchen</string>
     <string name="no_devices_hint">Zum Scannen nach unten ziehen oder + tippen, um einen neuen AmbiBack-Controller hinzuzufügen.</string>
     <string name="unnamed_device">Unbenanntes Gerät</string>
     <string name="unverified">Unbestätigt</string>

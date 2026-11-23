@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.ambiback.manager.data.local.AppSettingsDataStore
 import com.ambiback.manager.data.model.Device
 import com.ambiback.manager.data.repository.DeviceRepository
+import com.ambiback.manager.utils.DeviceKeys
 import com.ambiback.manager.utils.IpValidation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,8 +23,8 @@ data class DeviceListUiState(
     val isAddingByIp: Boolean = false,
     val scanComplete: Boolean = false,
     val error: String? = null,
-    /** deviceIds that were restored from storage but not yet confirmed by a live scan. */
-    val unverifiedIds: Set<String> = emptySet()
+    /** Device keys that were restored from storage but not yet confirmed by a live scan. */
+    val unverifiedKeys: Set<String> = emptySet()
 )
 
 @HiltViewModel
@@ -34,7 +36,7 @@ class DeviceListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DeviceListUiState())
     val uiState: StateFlow<DeviceListUiState> = _uiState.asStateFlow()
 
-    // In-memory map keyed by deviceId for deduplication
+    // In-memory map keyed by Device.deviceKey for deduplication
     private val deviceMap = mutableMapOf<String, Device>()
 
     init {
@@ -42,7 +44,7 @@ class DeviceListViewModel @Inject constructor(
         // overwrites a freshly discovered live device.
         viewModelScope.launch {
             restorePersistedDevices()
-            val scanOnStartup = settingsDataStore.scanOnStartup.firstOrNull() ?: false
+            val scanOnStartup = settingsDataStore.scanOnStartup.firstOrNull() ?: true
             if (scanOnStartup) scan()
         }
     }
@@ -51,11 +53,11 @@ class DeviceListViewModel @Inject constructor(
         val devices = repository.persistedDevices.firstOrNull() ?: return
         val unverified = mutableSetOf<String>()
         devices.forEach { persisted ->
-            unverified.add(persisted.deviceId)
+            unverified.add(persisted.deviceKey)
             addDevice(
                 Device(
                     deviceId = persisted.deviceId,
-                    deviceMac = "",
+                    deviceMac = persisted.deviceMac,
                     deviceName = persisted.deviceName,
                     deviceIp = persisted.deviceIp,
                     deviceType = "",
@@ -64,7 +66,7 @@ class DeviceListViewModel @Inject constructor(
                 )
             )
         }
-        _uiState.update { it.copy(unverifiedIds = unverified) }
+        _uiState.update { it.copy(unverifiedKeys = unverified) }
     }
 
     fun scan() {
@@ -76,8 +78,10 @@ class DeviceListViewModel @Inject constructor(
                 repository.discoverDevices().collect { device ->
                     addDevice(device)
                     repository.saveDevice(device)
-                    _uiState.update { it.copy(unverifiedIds = it.unverifiedIds - device.deviceId) }
+                    _uiState.update { it.copy(unverifiedKeys = it.unverifiedKeys - device.deviceKey) }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             } finally {
@@ -89,9 +93,13 @@ class DeviceListViewModel @Inject constructor(
     /**
      * Merge [device] into the map. When the incoming entry has blank fields
      * (e.g. a restored stub), keep any non-blank values already present.
+     * An entry saved without a MAC is replaced once its DeviceID is seen with one.
      */
     private fun addDevice(device: Device) {
-        val existing = deviceMap[device.deviceId]
+        val key = device.deviceKey
+        val stubKey = DeviceKeys.idKey(device.deviceId)
+        val stub = if (key != stubKey) deviceMap.remove(stubKey) else null
+        val existing = deviceMap[key] ?: stub
         val merged = if (existing != null) {
             device.copy(
                 deviceMac = device.deviceMac.ifBlank { existing.deviceMac },
@@ -104,8 +112,13 @@ class DeviceListViewModel @Inject constructor(
         } else {
             device
         }
-        deviceMap[merged.deviceId] = merged
-        _uiState.update { it.copy(devices = deviceMap.values.toList()) }
+        deviceMap[key] = merged
+        _uiState.update {
+            it.copy(
+                devices = deviceMap.values.toList(),
+                unverifiedKeys = if (stub != null) it.unverifiedKeys - stubKey + key else it.unverifiedKeys
+            )
+        }
     }
 
     fun addDeviceByIp(deviceIp: String, onSuccess: () -> Unit = {}) {
@@ -127,7 +140,7 @@ class DeviceListViewModel @Inject constructor(
                     .onSuccess { device ->
                         addDevice(device)
                         repository.saveDevice(device)
-                        _uiState.update { it.copy(unverifiedIds = it.unverifiedIds - device.deviceId) }
+                        _uiState.update { it.copy(unverifiedKeys = it.unverifiedKeys - device.deviceKey) }
                         onSuccess()
                     }
                     .onFailure { e ->
@@ -142,14 +155,14 @@ class DeviceListViewModel @Inject constructor(
     }
 
     /** Persist forget first so snackbar Undo cannot race an in-flight remove. */
-    suspend fun forgetDevice(deviceId: String) {
-        val ip = deviceMap[deviceId]?.deviceIp
-        repository.forgetDevice(deviceId, ip)
-        deviceMap.remove(deviceId)
+    suspend fun forgetDevice(deviceKey: String) {
+        val ip = deviceMap[deviceKey]?.deviceIp
+        repository.forgetDevice(deviceKey, ip)
+        deviceMap.remove(deviceKey)
         _uiState.update {
             it.copy(
                 devices = deviceMap.values.toList(),
-                unverifiedIds = it.unverifiedIds - deviceId
+                unverifiedKeys = it.unverifiedKeys - deviceKey
             )
         }
     }
@@ -164,7 +177,7 @@ class DeviceListViewModel @Inject constructor(
         viewModelScope.launch {
             repository.forgetAllDevices()
             deviceMap.clear()
-            _uiState.update { it.copy(devices = emptyList(), unverifiedIds = emptySet()) }
+            _uiState.update { it.copy(devices = emptyList(), unverifiedKeys = emptySet()) }
         }
     }
 

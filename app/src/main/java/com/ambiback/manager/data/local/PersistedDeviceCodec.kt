@@ -15,12 +15,18 @@ object PersistedDeviceCodec {
     fun parseEntry(entry: String): PersistedDevice? {
         if (entry.isBlank()) return null
         if (entry.trimStart().startsWith("{")) {
-            return try {
+            val parsed = try {
                 gson.fromJson(entry, PersistedDevice::class.java)
-                    ?.takeIf { it.deviceId.isNotBlank() && it.deviceIp.isNotBlank() }
             } catch (_: JsonSyntaxException) {
                 null
-            }
+            } ?: return null
+            // Gson skips Kotlin defaults, so fields missing from older entries arrive as null.
+            val id: String? = parsed.deviceId
+            val ip: String? = parsed.deviceIp
+            val name: String? = parsed.deviceName
+            val mac: String? = parsed.deviceMac
+            if (id.isNullOrBlank() || ip.isNullOrBlank()) return null
+            return PersistedDevice(id, ip, name.orEmpty(), mac.orEmpty())
         }
         val parts = entry.split("|")
         return if (parts.size >= 2 && parts[0].isNotBlank() && parts[1].isNotBlank()) {
@@ -33,4 +39,21 @@ object PersistedDeviceCodec {
             null
         }
     }
+
+    /**
+     * Adds or replaces [device]. An entry without a MAC and with the same DeviceID is replaced
+     * too, which upgrades entries saved by older app versions.
+     */
+    fun upsert(entries: Set<String>, device: PersistedDevice): Set<String> {
+        val retained = entries.filterNot { entry ->
+            val existing = parseEntry(entry) ?: return@filterNot false
+            existing.deviceKey == device.deviceKey ||
+                (existing.deviceMac.isBlank() && existing.deviceId == device.deviceId)
+        }
+        return (retained + toJson(device)).toSet()
+    }
+
+    /** Removes only the entry identified by [deviceKey]. */
+    fun remove(entries: Set<String>, deviceKey: String): Set<String> =
+        entries.filterNot { parseEntry(it)?.deviceKey == deviceKey }.toSet()
 }

@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Usb
@@ -198,7 +201,7 @@ fun DeviceListScreen(
                     }
                 }
                 uiState.devices.isEmpty() -> {
-                    EmptyState(modifier = Modifier.align(Alignment.Center))
+                    EmptyState(onScan = { viewModel.scan() }, modifier = Modifier.fillMaxSize())
                 }
                 else -> {
                     LazyColumn(
@@ -206,15 +209,15 @@ fun DeviceListScreen(
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(uiState.devices, key = { it.deviceId }) { device ->
+                        items(uiState.devices, key = { it.deviceKey }) { device ->
                             DeviceCard(
                                 device = device,
-                                unverified = device.deviceId in uiState.unverifiedIds,
+                                unverified = device.deviceKey in uiState.unverifiedKeys,
                                 onClick = { onNavigateToDevice(device.deviceIp, device.deviceName) },
                                 onForget = {
                                     val removedLabel = device.deviceName.ifEmpty { device.deviceIp }
                                     scope.launch {
-                                        viewModel.forgetDevice(device.deviceId)
+                                        viewModel.forgetDevice(device.deviceKey)
                                         val result = snackbarHostState.showSnackbar(
                                             message = "Removed $removedLabel",
                                             actionLabel = undoLabel,
@@ -412,9 +415,12 @@ private fun DeviceCard(
 }
 
 @Composable
-private fun EmptyState(modifier: Modifier) {
+private fun EmptyState(onScan: () -> Unit, modifier: Modifier) {
+    // Must scroll: PullToRefreshBox only sees the pull gesture through a scrollable child.
     Column(
-        modifier = modifier.padding(32.dp),
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -437,5 +443,11 @@ private fun EmptyState(modifier: Modifier) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
+        Spacer(Modifier.height(16.dp))
+        Button(onClick = onScan) {
+            Icon(Icons.Default.Refresh, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.scan_for_devices))
+        }
     }
 }
