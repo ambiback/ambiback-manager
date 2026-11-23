@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Silicon Labs CP210x — most ESP32 devkit boards (NodeMCU, etc.) -->
+    <usb-device vendor-id="4292" product-id="60000" />
+
+    <!-- FTDI FT232R -->
+    <usb-device vendor-id="1027" product-id="24577" />
+    <!-- FTDI FT232H -->
+    <usb-device vendor-id="1027" product-id="24596" />
+    <!-- FTDI FT2232H -->
+    <usb-device vendor-id="1027" product-id="24592" />
+    <!-- FTDI FT4232H -->
+    <usb-device vendor-id="1027" product-id="24593" />
+    <!-- FTDI FT231X -->
+    <usb-device vendor-id="1027" product-id="24597" />
+
+    <!-- WCH CH340 / CH341 (common on cheap ESP32 boards) -->
+    <usb-device vendor-id="6790" product-id="29987" />
+    <usb-device vendor-id="6790" product-id="21795" />
+
+    <!-- WCH CH9102 (newer ESP32-S2/S3 boards) -->
+    <usb-device vendor-id="6790" product-id="21972" />
+</resources>

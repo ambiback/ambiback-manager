@@ -1,0 +1,50 @@
+<resources>
+    <string name="app_name">AmbiBack Manager</string>
+
+    <!-- Navigation -->
+    <string name="navigate_back">Navigate back</string>
+    <string name="cancel">Cancel</string>
+    <string name="add">Add</string>
+    <string name="undo">Undo</string>
+    <string name="checking">Checking…</string>
+    <string name="more_options">More options</string>
+
+    <!-- Device list -->
+    <string name="devices_title">AmbiBack Devices</string>
+    <string name="add_device">Add device</string>
+    <string name="add_by_ip">Add by IP</string>
+    <string name="add_by_ip_title">Add Controller by IP</string>
+    <string name="device_ip">Device IP</string>
+    <string name="usb_device">USB Device</string>
+    <string name="clear_all_devices">Clear all devices</string>
+    <string name="clear_all_devices_confirm">Remove all saved devices from this phone? You can discover them again later.</string>
+    <string name="scanning_devices">Scanning for devices…</string>
+    <string name="no_devices_found">No devices found</string>
+    <string name="no_devices_hint">Pull down to scan, or tap + to add a new AmbiBack controller.</string>
+    <string name="unnamed_device">Unnamed Device</string>
+    <string name="unverified">Unverified</string>
+    <string name="forget_device">Forget device</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_network">Network</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="setting_scan_on_startup">Scan on startup</string>
+    <string name="setting_scan_on_startup_desc">Automatically scan for devices when the app opens</string>
+    <string name="setting_http_timeout">HTTP timeout</string>
+    <string name="setting_http_timeout_unit">s</string>
+    <string name="setting_http_timeout_desc">Seconds to wait for a device response (1–30)</string>
+    <string name="setting_use_dynamic_color">Use system colors</string>
+    <string name="setting_use_dynamic_color_desc">Use Material You dynamic colors from your wallpaper (Android 12+). Off uses the AmbiBack palette.</string>
+
+    <!-- About screen -->
+    <string name="about_title">About</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_tagline">AmbiBack Controller Manager\nControl your AmbiBack LED lighting system from your Android device.</string>
+    <string name="about_copyright">© 2001–2026 André Lorbach\nLicensed under GPL-3.0.</string>
+    <string name="about_website">www.ambiback.de</string>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simple LED ring icon as the app launcher foreground -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer ring -->
+    <path
+        android:fillColor="#6650A4"
+        android:pathData="M54,18 A36,36 0 1,1 53.99,18 Z" />
+    <!-- Mid ring -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30 A24,24 0 1,1 53.99,30 Z" />
+    <!-- Center -->
+    <path
+        android:fillColor="#1C1C1E"
+        android:pathData="M54,42 A12,12 0 1,1 53.99,42 Z" />
+    <!-- LED dots (top) — circle as path arc -->
+    <path
+        android:fillColor="#30D158"
+        android:pathData="M54,14 A4,4 0 1,1 53.99,14 Z" />
+    <!-- LED dots (right) -->
+    <path
+        android:fillColor="#30D158"
+        android:pathData="M72,36 A3,3 0 1,1 71.99,36 Z" />
+    <!-- LED dots (left) -->
+    <path
+        android:fillColor="#30D158"
+        android:pathData="M36,36 A3,3 0 1,1 35.99,36 Z" />
+</vector>

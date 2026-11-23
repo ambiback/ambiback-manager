@@ -1,0 +1,245 @@
+import java.nio.charset.StandardCharsets
+import java.util.Locale
+
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.dagger.hilt.android'
+    id 'com.google.devtools.ksp'
+}
+
+// Must match AMBIBACK_AP_PASSWORD_SEED of the firmware. Override with -PambibackApPasswordSeed=0x12345678.
+def apPasswordSeed = Long.decode(project.findProperty('ambibackApPasswordSeed')?.toString() ?: '0x0000FFFF')
+if (apPasswordSeed < 0L || apPasswordSeed > 0xFFFFFFFFL) {
+    throw new GradleException('ambibackApPasswordSeed must be a 32-bit unsigned value')
+}
+
+android {
+    namespace 'com.ambiback.manager'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.ambiback.manager"
+        minSdk 26
+        targetSdk 34
+        versionCode 2
+        versionName "1.1"
+        buildConfigField "long", "AP_PASSWORD_SEED", "${apPasswordSeed}L"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        compose true
+        buildConfig true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.15'
+    }
+
+    packaging {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+}
+
+def ambibackUiRepoUrl = 'https://github.com/ambiback/ambiback-ui.git'
+def ambibackUiCheckoutDir = file("${rootProject.projectDir}/.external/ambiback-ui")
+def ambibackUiDistDir = new File(ambibackUiCheckoutDir, 'dist')
+def fullControlAssetsDir = file("${projectDir}/src/main/assets/fullcontrol")
+def isWindows = System.properties['os.name'].toLowerCase(Locale.ROOT).contains('windows')
+def npmExecutable = isWindows ? 'npm.cmd' : 'npm'
+def syncAmbibackUi = project.hasProperty('syncAmbibackUi')
+
+def runCommand = { List<String> command, File cwd ->
+    exec {
+        commandLine command
+        if (cwd != null) {
+            workingDir cwd
+        }
+    }
+}
+
+tasks.register('syncAmbibackUiRepo') {
+    group = 'ambiback'
+    description = 'Clones or updates the ambiback-ui checkout used by the Full Control tab. Opt-in via -PsyncAmbibackUi.'
+    onlyIf { syncAmbibackUi }
+    // Always refresh when explicitly requested; a static outputs.dir would skip fetch/reset.
+    outputs.upToDateWhen { false }
+
+    doLast {
+        ambibackUiCheckoutDir.parentFile.mkdirs()
+
+        if (!ambibackUiCheckoutDir.exists()) {
+            runCommand(['git', 'clone', '--depth', '1', ambibackUiRepoUrl, ambibackUiCheckoutDir.absolutePath], rootProject.projectDir)
+            return
+        }
+
+        if (!new File(ambibackUiCheckoutDir, '.git').exists()) {
+            throw new GradleException("Existing path is not a git checkout: ${ambibackUiCheckoutDir}")
+        }
+
+        // Fast-forward only — never reset --hard so local tracked edits are preserved.
+        runCommand(['git', 'fetch', '--depth', '1', 'origin'], ambibackUiCheckoutDir)
+        try {
+            runCommand(['git', 'merge', '--ff-only', 'FETCH_HEAD'], ambibackUiCheckoutDir)
+        } catch (GradleException e) {
+            throw new GradleException(
+                "ambiback-ui checkout cannot fast-forward (local commits or dirty history). " +
+                "Resolve or re-clone ${ambibackUiCheckoutDir} before -PsyncAmbibackUi.",
+                e
+            )
+        }
+    }
+}
+
+tasks.register('buildAmbibackUi') {
+    group = 'ambiback'
+    description = 'Installs dependencies and builds ambiback-ui for Android asset packaging. Opt-in via -PsyncAmbibackUi.'
+    onlyIf { syncAmbibackUi }
+    dependsOn 'syncAmbibackUiRepo'
+
+    inputs.dir(ambibackUiCheckoutDir).optional()
+    outputs.dir(ambibackUiDistDir)
+
+    doLast {
+        runCommand([npmExecutable, 'install'], ambibackUiCheckoutDir)
+        runCommand([npmExecutable, 'run', 'build'], ambibackUiCheckoutDir)
+
+        if (!ambibackUiDistDir.exists()) {
+            throw new GradleException("ambiback-ui build did not produce dist/: ${ambibackUiDistDir}")
+        }
+    }
+}
+
+tasks.register('packageFullControlUi') {
+    group = 'ambiback'
+    description = 'Copies the built ambiback-ui into Android assets for the Full Control tab. Opt-in via -PsyncAmbibackUi.'
+    // Do not auto-run when assets are missing: fullcontrol is gitignored and sync is opt-in.
+    // Clean/CI builds succeed without UI assets; Full Control stays empty until synced once.
+    onlyIf { syncAmbibackUi }
+    dependsOn 'buildAmbibackUi'
+
+    inputs.dir(ambibackUiDistDir).optional()
+    outputs.dir(fullControlAssetsDir)
+
+    doLast {
+        if (!ambibackUiDistDir.exists()) {
+            if (new File(fullControlAssetsDir, 'index.html').exists()) {
+                logger.lifecycle("Using existing Full Control assets (pass -PsyncAmbibackUi to rebuild).")
+                return
+            }
+            throw new GradleException(
+                "Full Control UI assets missing. Run with -PsyncAmbibackUi once to fetch and build ambiback-ui."
+            )
+        }
+
+        delete(fullControlAssetsDir)
+        copy {
+            from ambibackUiDistDir
+            into fullControlAssetsDir
+        }
+
+        def indexFile = new File(fullControlAssetsDir, 'index.html')
+        if (!indexFile.exists()) {
+            throw new GradleException("Expected Full Control entrypoint missing: ${indexFile}")
+        }
+
+        def indexHtml = indexFile.getText(StandardCharsets.UTF_8.name())
+        indexHtml = indexHtml.replace('<script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script>', '')
+        indexFile.setText(indexHtml, StandardCharsets.UTF_8.name())
+
+        def registerSwFile = new File(fullControlAssetsDir, 'registerSW.js')
+        registerSwFile.setText('// Service worker disabled for Android WebView packaging.\n', StandardCharsets.UTF_8.name())
+
+        delete(new File(fullControlAssetsDir, 'sw.js'))
+        fileTree(fullControlAssetsDir) {
+            include 'workbox-*.js'
+        }.files.each { delete(it) }
+    }
+}
+
+tasks.named('preBuild') {
+    dependsOn 'packageFullControlUi'
+}
+
+dependencies {
+    // Compose BOM — pins all Compose library versions together
+    // 2024.09.03 brings Compose UI 1.7.3 which fixes the ACTION_HOVER_EXIT crash on Samsung
+    def composeBom = platform('androidx.compose:compose-bom:2024.09.03')
+    implementation composeBom
+    androidTestImplementation composeBom
+
+    // Core Compose
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-graphics'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+
+    // Material 3
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.material:material-icons-extended'
+
+    // Activity + Lifecycle
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.8.0'
+    implementation 'androidx.activity:activity-compose:1.9.0'
+
+    // Navigation
+    implementation 'androidx.navigation:navigation-compose:2.8.0'
+    implementation 'androidx.webkit:webkit:1.11.0'
+
+    // Hilt DI
+    implementation 'com.google.dagger:hilt-android:2.51.1'
+    ksp 'com.google.dagger:hilt-android-compiler:2.51.1'
+    implementation 'androidx.hilt:hilt-navigation-compose:1.2.0'
+
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+
+    // Networking — Retrofit + OkHttp + Gson
+    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+
+    // JSON parsing
+    implementation 'com.google.code.gson:gson:2.11.0'
+
+    // DataStore Preferences (device persistence)
+    implementation 'androidx.datastore:datastore-preferences:1.1.1'
+
+    // USB Serial (CP210x / FTDI / CH340 support for ESP32 USB-OTG management)
+    implementation 'io.github.mik3y:usb-serial-for-android:3.5.1'
+
+    // Test
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+}
