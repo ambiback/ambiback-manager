@@ -27,6 +27,10 @@ Devices with an access point open their setup window only when no Wi-Fi is confi
 
 Remaining limits: the first setup is not protected against someone in radio range who pairs first. The generated access point password is still derived from the MAC address, a custom seed is not full protection, and traffic is unencrypted. LED and mode control stay open on the local network, and device types without an access point have no pairing. Run devices only on a trusted network.
 
+## Hardware
+
+The parts for a DIY build are on the [AmbiBack parts page](https://www.ambiback.de/en/diy/parts/).
+
 ## Building
 
 Requires JDK 17 or newer and the Android SDK with API level 34.

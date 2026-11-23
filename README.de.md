@@ -27,6 +27,10 @@ Geräte mit Access Point öffnen ihr Einrichtungsfenster nur, wenn noch kein WLA
 
 Verbleibende Grenzen: Die Ersteinrichtung ist nicht dagegen geschützt, dass jemand in Funkreichweite sich zuerst koppelt. Das erzeugte Access-Point-Passwort wird weiter aus der MAC-Adresse abgeleitet, ein eigener Startwert ist kein vollwertiger Schutz, und die Übertragung ist unverschlüsselt. LED- und Modussteuerung bleiben im lokalen Netz offen, und Gerätetypen ohne Access Point haben keine Kopplung. Betreibe die Geräte nur in einem vertrauenswürdigen Netz.
 
+## Hardware
+
+Die Bauteile für den Selbstbau stehen auf der [AmbiBack-Teileseite](https://www.ambiback.de/selbstbau/teile/).
+
 ## Bauen
 
 Voraussetzungen sind JDK 17 oder neuer und das Android SDK mit API-Level 34.
