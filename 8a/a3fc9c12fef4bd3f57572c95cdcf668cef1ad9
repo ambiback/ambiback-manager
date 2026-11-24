@@ -1,0 +1,34 @@
+README.md
+  s_92303bbd971bec::t_52a4dddf374195 9-10
+README.de.md
+  s_92303bbd971bec::t_198c82b177d348 9-10
+docs/BENUTZERHANDBUCH.md
+  s_92303bbd971bec::t_9a1fe98dea44fc 1-76,78-158
+  s_92303bbd971bec::t_6f1fe5c56cf04a 77
+app/src/main/java/com/ambiback/manager/ui/device/DeviceDetailScreen.kt
+  s_92303bbd971bec::t_cb90db56d367cd 1-187
+app/src/main/java/com/ambiback/manager/ui/device/QuickControlContent.kt
+  s_92303bbd971bec::t_37f5d577778fa6 1-858
+app/src/main/java/com/ambiback/manager/ui/device/WebViewContent.kt
+  s_92303bbd971bec::t_3f96f73d7ad34d 1-183
+app/src/main/java/com/ambiback/manager/ui/devices/DeviceListScreen.kt
+  s_92303bbd971bec::t_60248aacc6b0b9 1-520
+app/src/test/java/com/ambiback/manager/data/model/DeviceJsonTest.kt
+  s_92303bbd971bec::t_149781684a8779 1-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8aa3fc9c12fef4bd3f57572c95cdcf668cef1ad9",
+  "prompts": {},
+  "sessions": {
+    "s_92303bbd971bec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab9793da-4187-4c75-9427-c97e0b522d59",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Andre Lorbach <1675286+alorbach@users.noreply.github.com>"
+    }
+  }
+}

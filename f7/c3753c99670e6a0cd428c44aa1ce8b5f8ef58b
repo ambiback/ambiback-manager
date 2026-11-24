@@ -1,0 +1,46 @@
+app/src/main/java/com/ambiback/manager/ui/devices/DeviceListViewModel.kt
+  s_92303bbd971bec::t_47acfc8b262115 3
+  s_92303bbd971bec::t_9f04d60b7cb5cd 107-111
+  s_92303bbd971bec::t_a305dc08cb8883 90-94
+  s_92303bbd971bec::t_c82e2f69887957 49
+  s_92303bbd971bec::t_d37aa9fb18f82b 73-76
+app/src/main/java/com/ambiback/manager/data/local/PersistedDeviceCodec.kt
+  s_92303bbd971bec::t_b46f6bfc6bedae 45-46,49-56
+app/src/test/java/com/ambiback/manager/data/local/PersistedDeviceParseTest.kt
+  s_92303bbd971bec::t_1bfb2c92007c83 62-68
+  s_bd161bfba247ba::t_408b0eacfb2f41 61
+app/src/test/java/com/ambiback/manager/data/network/UdpDiscoveryReceiveTest.kt
+  s_92303bbd971bec::t_e1932fc23b3461 83-88
+  s_bd161bfba247ba::t_0efbe2b5664c10 82
+app/src/main/java/com/ambiback/manager/data/network/UdpDiscoveryService.kt
+  s_92303bbd971bec::t_1482b9eb882aa7 161-166
+  s_92303bbd971bec::t_63c8707f7a932b 143-147
+  s_92303bbd971bec::t_381957ac6a7bdf 134
+  s_92303bbd971bec::t_74f37a2d7e0391 8
+app/src/main/java/com/ambiback/manager/ui/devices/DeviceListScreen.kt
+  s_92303bbd971bec::t_2be155237a7329 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f7c3753c99670e6a0cd428c44aa1ce8b5f8ef58b",
+  "prompts": {},
+  "sessions": {
+    "s_92303bbd971bec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab9793da-4187-4c75-9427-c97e0b522d59",
+        "model": "unknown"
+      },
+      "human_author": "Andre Lorbach <1675286+alorbach@users.noreply.github.com>"
+    },
+    "s_bd161bfba247ba": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20975-04eb-7aa0-9aee-e1b0234be71d",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "Andre Lorbach <1675286+alorbach@users.noreply.github.com>"
+    }
+  }
+}

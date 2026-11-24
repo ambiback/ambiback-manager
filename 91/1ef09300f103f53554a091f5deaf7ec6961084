@@ -1,0 +1,46 @@
+app/src/main/java/com/ambiback/manager/data/repository/DeviceRepository.kt
+  s_92303bbd971bec::t_ab22bf59e73294 3-4,12,28-29,71,105-108
+app/src/main/java/com/ambiback/manager/data/usb/UsbSerialManager.kt
+  s_92303bbd971bec::t_ab22bf59e73294 6,180
+docs/BENUTZERHANDBUCH.md
+  s_92303bbd971bec::t_d959f087b510ec 53,56-60
+  s_92303bbd971bec::t_a1c1215ab37223 125-126
+  s_92303bbd971bec::t_801aa498a3433e 128-132
+  s_92303bbd971bec::t_1d87b9148396d6 66
+app/src/main/java/com/ambiback/manager/data/usb/EspRomFlasher.kt
+  s_92303bbd971bec::t_ab22bf59e73294 5,42,47-48,50,53,62,75,102,109,120-121,368,385-388
+app/src/main/java/com/ambiback/manager/ui/usb/UsbDeviceViewModel.kt
+  s_92303bbd971bec::t_ab22bf59e73294 12,120,122,125,130,133,135,154,156,178
+app/src/main/java/com/ambiback/manager/ui/provisioning/ProvisioningViewModel.kt
+  s_92303bbd971bec::t_ab22bf59e73294 14,194,206,211,232,240,304,313,343,345,355,372,379,386,405,423,429,445,450,457,462,483,518-519,543,576,599,601,611
+  s_92303bbd971bec::t_5c7b0b8faf00a9 43
+app/src/main/java/com/ambiback/manager/ui/device/DeviceDetailViewModel.kt
+  s_92303bbd971bec::t_ab22bf59e73294 3,8,15,55,96,113,123
+app/src/main/res/values/strings.xml
+  s_92303bbd971bec::t_57d097f108bd53 103-240
+app/src/main/java/com/ambiback/manager/ui/usb/UsbDeviceScreen.kt
+  s_92303bbd971bec::t_4ec05f3b47c1a4 71,81,117,166-167,170,174,183-184,189,192,201,204,211,214,223,226,257,274,283,295,308,324,343,353,360,368,387,407,416,434,437-438,442-443,447-448,478,494-499,530,534,538
+app/src/main/res/values-de/strings.xml
+  s_92303bbd971bec::t_dc1579cfab9faf 176
+  s_92303bbd971bec::t_6ae310d259e9b1 174
+  s_92303bbd971bec::t_e2503c8cb0107e 188
+  s_92303bbd971bec::t_460a8c018f7560 98-173,175,177-187,189-232
+app/src/main/java/com/ambiback/manager/ui/provisioning/ProvisioningScreen.kt
+  s_92303bbd971bec::t_4ec05f3b47c1a4 56,63,80,86,95,137,142,152,155,164,170,174,246,249,264,279,293,297,305,308,338,351,353-355,358,363,367,383,386,394,398,408,417,431,446,449,455,474,484,490,494,509,512,518,533,542,548,554,569,572,578,597,608,613
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "911ef09300f103f53554a091f5deaf7ec6961084",
+  "prompts": {},
+  "sessions": {
+    "s_92303bbd971bec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab9793da-4187-4c75-9427-c97e0b522d59",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Andre Lorbach <1675286+alorbach@users.noreply.github.com>"
+    }
+  }
+}

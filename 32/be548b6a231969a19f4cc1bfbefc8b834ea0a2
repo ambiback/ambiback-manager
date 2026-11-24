@@ -1,0 +1,32 @@
+app/src/main/java/com/ambiback/manager/ui/device/DeviceDetailScreen.kt
+  s_92303bbd971bec::t_49e4d2cf102979 144-146
+  s_92303bbd971bec::t_da186810be1351 33
+  s_92303bbd971bec::t_41fca73de8f561 176,180
+app/src/main/java/com/ambiback/manager/ui/devices/DeviceListScreen.kt
+  s_92303bbd971bec::t_5bdd9736d18663 123,125-128
+  s_92303bbd971bec::t_ca8a7b038a22a1 197-198
+app/src/main/java/com/ambiback/manager/ui/device/QuickControlContent.kt
+  s_92303bbd971bec::t_6a4c26a62c64ba 44
+  s_92303bbd971bec::t_5ee5a1827e8182 807-834
+app/src/main/res/values-de/strings.xml
+  s_92303bbd971bec::t_1cca5d003d2ec3 41-42
+app/src/main/java/com/ambiback/manager/ui/theme/Color.kt
+  s_92303bbd971bec::t_d95fafd7af9598 14-17
+  s_92303bbd971bec::t_fdc0b69caed5d9 31-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "32be548b6a231969a19f4cc1bfbefc8b834ea0a2",
+  "prompts": {},
+  "sessions": {
+    "s_92303bbd971bec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab9793da-4187-4c75-9427-c97e0b522d59",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Andre Lorbach <1675286+alorbach@users.noreply.github.com>"
+    }
+  }
+}

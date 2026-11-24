@@ -1,0 +1,47 @@
+app/src/test/java/com/ambiback/manager/utils/ClaimKeysTest.kt
+  s_ed4f085c6942da::t_9163abd7bef92e 1-31
+app/src/main/java/com/ambiback/manager/utils/ClaimKeys.kt
+  s_ed4f085c6942da::t_ef56dd2fbbd3c0 1-18
+app/src/main/java/com/ambiback/manager/data/local/ClaimKeyStore.kt
+  s_ed4f085c6942da::t_64ec8f591c63ea 1-86
+README.de.md
+  s_ed4f085c6942da::t_b8d3eab13ed458 26-28
+README.md
+  s_ed4f085c6942da::t_317908bb264ea6 26-28
+app/src/main/assets/fullcontrol/assets/index-6wsScKDK.js
+  s_ed4f085c6942da::t_cadd6495348a6b 1,3,6,8-9,11
+app/src/main/assets/fullcontrol/index.html
+  s_ed4f085c6942da::t_f6470a3831de6c 8
+app/src/main/java/com/ambiback/manager/data/model/Device.kt
+  s_ed4f085c6942da::t_2b0c4483ffcf53 95-97,122-128
+app/src/main/java/com/ambiback/manager/data/network/ProvisioningApiService.kt
+  s_ed4f085c6942da::t_86f3dbd420d25c 3,15,41,48,62-63,76-77,79-90
+app/src/main/java/com/ambiback/manager/data/repository/ProvisioningRepository.kt
+  s_ed4f085c6942da::t_a2ec5fa5145b7d 3,39-49,54-55,68-69,73,85-86,89
+app/src/main/java/com/ambiback/manager/ui/device/DeviceDetailScreen.kt
+  s_ed4f085c6942da::t_3b28e506f3ff37 82
+app/src/main/java/com/ambiback/manager/ui/device/DeviceDetailViewModel.kt
+  s_ed4f085c6942da::t_26b24d7b265785 7,38-39,47,69-70
+app/src/main/java/com/ambiback/manager/ui/device/FullControlWebView.kt
+  s_ed4f085c6942da::t_dd3e109471bf8a 21-22,24,35,37-41,109,133-143
+app/src/main/java/com/ambiback/manager/ui/device/QuickControlContent.kt
+  s_ed4f085c6942da::t_0726a252e79b23 40,49-50,130,146,175,348-378
+app/src/main/java/com/ambiback/manager/ui/provisioning/ProvisioningViewModel.kt
+  s_ed4f085c6942da::t_101cbd8dd92e92 14,18,27,108,117-118,129,187-190,259,297-300,339,341-345,354,366,385,410,428,438,461,503,509-545,594,596-600,609
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4c34516b736e01b63ded0dd4bc8c6d73bfb7cf71",
+  "prompts": {},
+  "sessions": {
+    "s_ed4f085c6942da": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "25338f00-8e49-4247-ba73-a2a50acc53dc",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Andre Lorbach <1675286+alorbach@users.noreply.github.com>"
+    }
+  }
+}

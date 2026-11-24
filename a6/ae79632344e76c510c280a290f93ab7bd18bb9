@@ -1,0 +1,171 @@
+.gitattributes
+  s_ed4f085c6942da::t_39cff6f8fbf8d0 1-2
+.gitignore
+  s_ed4f085c6942da::t_83fa6df3b3d79b 1-24
+LICENSE
+  s_ed4f085c6942da::t_947b8adb4a4468 1-675
+README.md
+  s_f979a138338d89::t_10ec13a6548a54 1-44
+app/.gitignore
+  s_ed4f085c6942da::t_7946b1f398107c 1
+app/build.gradle
+  s_f979a138338d89::t_41beb7b4fff17d 1-245
+app/proguard-rules.pro
+  s_ed4f085c6942da::t_d9b4ab90c8e884 1-32
+app/src/main/AndroidManifest.xml
+  s_ed4f085c6942da::t_420ef2ea9365dd 1-57
+app/src/main/assets/fullcontrol/.nojekyll
+  s_f979a138338d89::t_7e72e06c416f1b 1
+app/src/main/assets/fullcontrol/assets/discovery-CwX6PrOP.js
+  s_f979a138338d89::t_2df4b30be9304a 1
+app/src/main/assets/fullcontrol/assets/index-FKbyZNzx.css
+  s_f979a138338d89::t_30e6c7198986f7 1
+app/src/main/assets/fullcontrol/assets/index-iY6eanTg.js
+  s_f979a138338d89::t_8a19893df49d84 1-11
+app/src/main/assets/fullcontrol/index.html
+  s_f979a138338d89::t_565f641888d83e 1-14
+app/src/main/assets/fullcontrol/manifest.webmanifest
+  s_f979a138338d89::t_fbe3eebbfd156e 1
+app/src/main/assets/fullcontrol/registerSW.js
+  s_f979a138338d89::t_e2c45cfebf3b30 1
+app/src/main/assets/fullcontrol/vite.svg
+  s_f979a138338d89::t_1b112e9ae415eb 1
+app/src/main/java/com/ambiback/manager/AmbiBackManagerApp.kt
+  s_ed4f085c6942da::t_b450cb8b0d3e74 1-11
+app/src/main/java/com/ambiback/manager/MainActivity.kt
+  s_ed4f085c6942da::t_6400895ddd3091 1-40
+app/src/main/java/com/ambiback/manager/data/local/AppSettingsDataStore.kt
+  s_ed4f085c6942da::t_6d9a601177ccd3 1-67
+app/src/main/java/com/ambiback/manager/data/local/DeviceDataStore.kt
+  s_ed4f085c6942da::t_eb0bb4018921fe 1-71
+app/src/main/java/com/ambiback/manager/data/local/PersistedDeviceCodec.kt
+  s_ed4f085c6942da::t_ad3f6a927f64e6 1-36
+app/src/main/java/com/ambiback/manager/data/model/Device.kt
+  s_ed4f085c6942da::t_9502e1c6a8bf74 1-123
+app/src/main/java/com/ambiback/manager/data/network/DeviceApiService.kt
+  s_ed4f085c6942da::t_87a1d2180afbf6 1-45
+app/src/main/java/com/ambiback/manager/data/network/GatewayResolver.kt
+  s_ed4f085c6942da::t_43f031f3d0d8b0 1-59
+app/src/main/java/com/ambiback/manager/data/network/ProvisioningApiService.kt
+  s_ed4f085c6942da::t_11da2423a7d59e 1-98
+app/src/main/java/com/ambiback/manager/data/network/RetrofitFactory.kt
+  s_ed4f085c6942da::t_ada24c7d13d076 1-72
+app/src/main/java/com/ambiback/manager/data/network/UdpDiscoveryService.kt
+  s_ed4f085c6942da::t_a9958ea3240ee8 1-127
+app/src/main/java/com/ambiback/manager/data/repository/DeviceRepository.kt
+  s_ed4f085c6942da::t_b3ca6019ac93dc 1-104
+app/src/main/java/com/ambiback/manager/data/repository/ProvisioningRepository.kt
+  s_ed4f085c6942da::t_0ecf89a9fcdb92 1-79
+app/src/main/java/com/ambiback/manager/data/usb/EspRomFlasher.kt
+  s_ed4f085c6942da::t_82b0cdc91f0d5e 1-403
+app/src/main/java/com/ambiback/manager/data/usb/SlipFraming.kt
+  s_ed4f085c6942da::t_710d7fead44254 1-47
+app/src/main/java/com/ambiback/manager/data/usb/UsbCommandProtocol.kt
+  s_ed4f085c6942da::t_d9e3bd65e914ac 1-58
+app/src/main/java/com/ambiback/manager/data/usb/UsbSerialManager.kt
+  s_ed4f085c6942da::t_d27664b2836db5 1-202
+app/src/main/java/com/ambiback/manager/ui/about/AboutScreen.kt
+  s_ed4f085c6942da::t_5b737adde58d7c 1-156
+app/src/main/java/com/ambiback/manager/ui/device/DeviceDetailScreen.kt
+  s_ed4f085c6942da::t_31e0a330cbcaf5 1-107
+app/src/main/java/com/ambiback/manager/ui/device/DeviceDetailViewModel.kt
+  s_ed4f085c6942da::t_df44acfd52b93d 1-179
+app/src/main/java/com/ambiback/manager/ui/device/FullControlWebView.kt
+  s_ed4f085c6942da::t_d6df916e91c501 1-165
+app/src/main/java/com/ambiback/manager/ui/device/QuickControlContent.kt
+  s_ed4f085c6942da::t_141a6f095b10e0 1-696
+app/src/main/java/com/ambiback/manager/ui/device/WebViewContent.kt
+  s_ed4f085c6942da::t_6b8b0e614aa9b5 1-110
+app/src/main/java/com/ambiback/manager/ui/devices/DeviceListScreen.kt
+  s_ed4f085c6942da::t_37a038c2be3b59 1-441
+app/src/main/java/com/ambiback/manager/ui/devices/DeviceListViewModel.kt
+  s_ed4f085c6942da::t_6b2b122d58c967 1-174
+app/src/main/java/com/ambiback/manager/ui/navigation/AppNavigation.kt
+  s_ed4f085c6942da::t_c23b4ce85ac892 1-120
+app/src/main/java/com/ambiback/manager/ui/provisioning/ProvisioningScreen.kt
+  s_ed4f085c6942da::t_c231321cdacf53 1-646
+app/src/main/java/com/ambiback/manager/ui/provisioning/ProvisioningViewModel.kt
+  s_ed4f085c6942da::t_6da3b8efe11bc2 1-558
+app/src/main/java/com/ambiback/manager/ui/settings/SettingsScreen.kt
+  s_ed4f085c6942da::t_3382e40f75e9d6 1-213
+app/src/main/java/com/ambiback/manager/ui/settings/SettingsViewModel.kt
+  s_ed4f085c6942da::t_efd70835c60cc4 1-54
+app/src/main/java/com/ambiback/manager/ui/theme/Color.kt
+  s_ed4f085c6942da::t_bcbe2e2a267b63 1-34
+app/src/main/java/com/ambiback/manager/ui/theme/Theme.kt
+  s_ed4f085c6942da::t_1c4d8595ad8fd7 1-88
+app/src/main/java/com/ambiback/manager/ui/theme/Type.kt
+  s_ed4f085c6942da::t_9505c0b36e9baa 1-34
+app/src/main/java/com/ambiback/manager/ui/usb/UsbDeviceScreen.kt
+  s_ed4f085c6942da::t_2223c0153e9621 1-562
+app/src/main/java/com/ambiback/manager/ui/usb/UsbDeviceViewModel.kt
+  s_ed4f085c6942da::t_e8222c61cfab91 1-182
+app/src/main/java/com/ambiback/manager/utils/IpValidation.kt
+  s_ed4f085c6942da::t_468344d0aaa66b 1-18
+app/src/main/java/com/ambiback/manager/utils/PasswordGenerator.kt
+  s_f979a138338d89::t_3f8d3e4895f0c0 1-45
+app/src/main/res/drawable/ic_launcher_foreground.xml
+  s_ed4f085c6942da::t_cd86b65b915a03 1-32
+app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+  s_ed4f085c6942da::t_e2ca09c5d700a9 1-5
+app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+  s_ed4f085c6942da::t_12e4b368478bd3 1-5
+app/src/main/res/values-de/strings.xml
+  s_ed4f085c6942da::t_278c48cc9fc6d2 1-46
+app/src/main/res/values/colors.xml
+  s_ed4f085c6942da::t_9c570b033f8f22 1-4
+app/src/main/res/values/strings.xml
+  s_ed4f085c6942da::t_1ccc1c57f086ff 1-50
+app/src/main/res/values/themes.xml
+  s_ed4f085c6942da::t_5922966d317cb1 1-7
+app/src/main/res/xml/usb_device_filter.xml
+  s_ed4f085c6942da::t_549b8e2aa76fbd 1-23
+app/src/test/java/com/ambiback/manager/data/local/PersistedDeviceParseTest.kt
+  s_ed4f085c6942da::t_4ffc09f83a9e72 1-35
+app/src/test/java/com/ambiback/manager/data/usb/SlipFramingTest.kt
+  s_ed4f085c6942da::t_b5c79b8a8eba43 1-19
+app/src/test/java/com/ambiback/manager/data/usb/UsbCommandProtocolTest.kt
+  s_ed4f085c6942da::t_a8976e74d23433 1-34
+app/src/test/java/com/ambiback/manager/ui/device/RewriteDeviceParamTest.kt
+  s_ed4f085c6942da::t_9b9fff4dd5c680 1-31
+app/src/test/java/com/ambiback/manager/utils/IpValidationTest.kt
+  s_ed4f085c6942da::t_186827b20ebfed 1-25
+app/src/test/java/com/ambiback/manager/utils/PasswordGeneratorTest.kt
+  s_f979a138338d89::t_48d82dd692ce21 1-21
+build.gradle
+  s_ed4f085c6942da::t_578fab11217249 1-7
+gradle.properties
+  s_ed4f085c6942da::t_d8cd2074620690 1-5
+gradle/wrapper/gradle-wrapper.properties
+  s_ed4f085c6942da::t_975210c1d667ef 1-5
+gradlew
+  s_ed4f085c6942da::t_efae15484afb1c 1-172
+gradlew.bat
+  s_ed4f085c6942da::t_778ee50de6dbaf 1-84
+settings.gradle
+  s_ed4f085c6942da::t_635554eaea8092 1-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a6ae79632344e76c510c280a290f93ab7bd18bb9",
+  "prompts": {},
+  "sessions": {
+    "s_ed4f085c6942da": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "25338f00-8e49-4247-ba73-a2a50acc53dc",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Andre Lorbach <1675286+alorbach@users.noreply.github.com>"
+    },
+    "s_f979a138338d89": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1daad5b8-286e-4d5b-89e0-7a82ee3b6e21",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Andre Lorbach <1675286+alorbach@users.noreply.github.com>"
+    }
+  }
+}

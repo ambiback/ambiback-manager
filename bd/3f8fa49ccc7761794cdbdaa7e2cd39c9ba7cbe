@@ -1,0 +1,25 @@
+README.de.md
+  s_92303bbd971bec::t_454449e4c1d1b9 13
+README.md
+  s_92303bbd971bec::t_c28b708fa3ac9b 13
+app/build.gradle
+  s_92303bbd971bec::t_3b66b9ff922c5b 50-51
+docs/BENUTZERHANDBUCH.md
+  s_92303bbd971bec::t_1e0feb8852a03d 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bd3f8fa49ccc7761794cdbdaa7e2cd39c9ba7cbe",
+  "prompts": {},
+  "sessions": {
+    "s_92303bbd971bec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab9793da-4187-4c75-9427-c97e0b522d59",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Andre Lorbach <1675286+alorbach@users.noreply.github.com>"
+    }
+  }
+}

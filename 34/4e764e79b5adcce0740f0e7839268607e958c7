@@ -1,0 +1,38 @@
+README.md
+  s_92303bbd971bec::t_fc16ff717ca49b 13-14
+  s_92303bbd971bec::t_b1d7900a7938c0 57-78
+.github/workflows/release.yml
+  s_92303bbd971bec::t_dce92eaa8348c0 1-72,75-188
+  s_92303bbd971bec::t_84d8022eef1fbb 73-74
+.github/workflows/ci.yml
+  s_92303bbd971bec::t_97b5fb9eb526a3 34
+  s_92303bbd971bec::t_d002cb4242f80e 37,42-44
+docs/BENUTZERHANDBUCH.md
+  s_92303bbd971bec::t_45609390f700b4 5-7
+README.de.md
+  s_92303bbd971bec::t_d106abe028795e 13-14
+  s_92303bbd971bec::t_3031c884158d49 57-78
+.gitignore
+  s_92303bbd971bec::t_250320035b145e 23-26
+app/build.gradle
+  s_92303bbd971bec::t_4d239aec74abe3 17-41
+  s_92303bbd971bec::t_0b6331ded8dd6a 50-51
+  s_92303bbd971bec::t_40d21c6915a975 60-71,77-79
+  s_92303bbd971bec::t_31c2e9b9d1294d 228-239
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "344e764e79b5adcce0740f0e7839268607e958c7",
+  "prompts": {},
+  "sessions": {
+    "s_92303bbd971bec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab9793da-4187-4c75-9427-c97e0b522d59",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Andre Lorbach <1675286+alorbach@users.noreply.github.com>"
+    }
+  }
+}
