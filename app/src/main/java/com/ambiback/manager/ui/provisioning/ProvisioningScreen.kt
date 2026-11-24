@@ -53,12 +53,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ambiback.manager.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,13 +77,13 @@ fun ProvisioningScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add Device") },
+                title = { Text(stringResource(R.string.add_device)) },
                 navigationIcon = {
                     IconButton(onClick = {
                         viewModel.reset()
                         onNavigateBack()
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
                     }
                 }
             )
@@ -90,7 +92,7 @@ fun ProvisioningScreen(
             if (uiState.expiresInMs > 0) {
                 BottomAppBar {
                     Text(
-                        text = "Setup window expires in: ${uiState.expiresInMs / 1000}s",
+                        text = stringResource(R.string.setup_expires_in, (uiState.expiresInMs / 1000).toInt()),
                         style = MaterialTheme.typography.labelLarge,
                         // Only turn red when time is actually running short.
                         color = if (uiState.expiresInMs <= 15_000) MaterialTheme.colorScheme.error
@@ -132,12 +134,12 @@ fun ProvisioningScreen(
 
                 is ProvisioningStep.WaitingForAutoConnect ->
                     ProgressContent(
-                        message = "Waiting for you to select an AmbiBack device…",
+                        message = stringResource(R.string.setup_waiting_confirm),
                         onCancel = { viewModel.cancelAutoConnect() }
                     )
 
                 is ProvisioningStep.ResolvingGateway ->
-                    ProgressContent(message = "Resolving controller address…")
+                    ProgressContent(message = stringResource(R.string.setup_resolving))
 
                 is ProvisioningStep.Connected ->
                     ConnectedContent(
@@ -147,10 +149,10 @@ fun ProvisioningScreen(
                     )
 
                 is ProvisioningStep.StartingSession ->
-                    ProgressContent(message = "Starting session…")
+                    ProgressContent(message = stringResource(R.string.setup_starting_session))
 
                 is ProvisioningStep.StartingWps ->
-                    ProgressContent(message = "Starting WPS mode…")
+                    ProgressContent(message = stringResource(R.string.setup_starting_wps))
 
                 is ProvisioningStep.EnterCredentials ->
                     CredentialEntryContent(
@@ -159,17 +161,17 @@ fun ProvisioningScreen(
                     )
 
                 is ProvisioningStep.Submitting ->
-                    ProgressContent(message = "Submitting credentials…")
+                    ProgressContent(message = stringResource(R.string.setup_submitting))
 
                 is ProvisioningStep.Monitoring ->
                     MonitoringContent(onFinish = { viewModel.finishProvisioning() })
 
                 is ProvisioningStep.Finishing ->
-                    ProgressContent(message = "Applying credentials…")
+                    ProgressContent(message = stringResource(R.string.setup_finishing))
 
                 is ProvisioningStep.Rebooting ->
                     ProgressContent(
-                        message = "${step.message}\n(Rebooting in ${(step.remainingMs / 1000).coerceAtLeast(0)}s)"
+                        message = stringResource(R.string.setup_rebooting_in, step.message, (step.remainingMs / 1000).coerceAtLeast(0).toInt())
                     )
 
                 is ProvisioningStep.Expired ->
@@ -241,10 +243,10 @@ private fun IdleContent(onAutoConnect: () -> Unit, onManualConnect: () -> Unit) 
             tint = MaterialTheme.colorScheme.primary
         )
         Spacer(Modifier.height(16.dp))
-        Text("Add AmbiBack Device", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.setup_idle_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Power on the controller in AP mode, then scan to connect automatically.",
+            text = stringResource(R.string.setup_idle_text),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Start
         )
@@ -259,7 +261,7 @@ private fun IdleContent(onAutoConnect: () -> Unit, onManualConnect: () -> Unit) 
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Text(
-                        "Wi‑Fi and location permissions are required to scan for nearby AmbiBack devices.",
+                        stringResource(R.string.setup_permission_needed),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onErrorContainer
                     )
@@ -274,7 +276,7 @@ private fun IdleContent(onAutoConnect: () -> Unit, onManualConnect: () -> Unit) 
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Open App Settings")
+                        Text(stringResource(R.string.setup_open_app_settings))
                     }
                 }
             }
@@ -288,11 +290,11 @@ private fun IdleContent(onAutoConnect: () -> Unit, onManualConnect: () -> Unit) 
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Scan for New Devices")
+            Text(stringResource(R.string.setup_scan_new))
         }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(onClick = onManualConnect, modifier = Modifier.fillMaxWidth()) {
-            Text("I've connected to the device WiFi manually")
+            Text(stringResource(R.string.setup_connected_manually))
         }
     }
 }
@@ -300,10 +302,10 @@ private fun IdleContent(onAutoConnect: () -> Unit, onManualConnect: () -> Unit) 
 @Composable
 private fun SelectDeviceContent(ssids: List<String>, onSelect: (String) -> Unit) {
     StepCard {
-        Text("Select Device", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.setup_select_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(16.dp))
         Text(
-            "Multiple AmbiBack devices found. Which one would you like to configure?",
+            stringResource(R.string.setup_select_text),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Start
         )
@@ -333,7 +335,7 @@ private fun ProgressContent(message: String, onCancel: (() -> Unit)? = null) {
         if (onCancel != null) {
             Spacer(Modifier.height(24.dp))
             OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     }
@@ -346,23 +348,23 @@ private fun ConnectedContent(
     onStartWps: () -> Unit
 ) {
     StepCard {
-        Text("Controller Found", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.setup_found_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(12.dp))
-        InfoRow("AP SSID", step.status.apSsid.ifEmpty { "—" })
-        InfoRow("AP IP",   step.gatewayIp)
-        InfoRow("State",   step.status.state)
+        InfoRow(stringResource(R.string.setup_ap), step.status.apSsid.ifEmpty { "—" })
+        InfoRow(stringResource(R.string.setup_ip), step.gatewayIp)
+        InfoRow(stringResource(R.string.setup_state), step.status.state)
         Spacer(Modifier.height(12.dp))
         Text(
-            "Choose how you want to connect the controller to your WiFi network.",
+            stringResource(R.string.setup_choose_method),
             style = MaterialTheme.typography.bodyMedium
         )
         Spacer(Modifier.height(24.dp))
         Button(onClick = onStartWps, modifier = Modifier.fillMaxWidth()) {
-            Text("Start WPS Mode")
+            Text(stringResource(R.string.setup_start_wps))
         }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(onClick = onStartProvisioning, modifier = Modifier.fillMaxWidth()) {
-            Text("Use WiFi Credentials")
+            Text(stringResource(R.string.setup_use_credentials))
         }
     }
 }
@@ -378,10 +380,10 @@ private fun CredentialEntryContent(
     var ssidError by remember { mutableStateOf(false) }
 
     StepCard {
-        Text("Enter WiFi Credentials", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.setup_credentials_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(12.dp))
         Text(
-            "Enter the SSID and password of the WiFi network the controller should join.",
+            stringResource(R.string.setup_credentials_text),
             style = MaterialTheme.typography.bodyMedium
         )
         Spacer(Modifier.height(16.dp))
@@ -389,11 +391,11 @@ private fun CredentialEntryContent(
         OutlinedTextField(
             value         = ssid,
             onValueChange = { ssid = it; ssidError = false },
-            label         = { Text("WiFi SSID") },
+            label         = { Text(stringResource(R.string.setup_ssid)) },
             singleLine    = true,
             isError       = ssidError,
             supportingText = if (ssidError) {
-                { Text("SSID is required") }
+                { Text(stringResource(R.string.setup_ssid_required)) }
             } else null,
             modifier = Modifier.fillMaxWidth()
         )
@@ -403,7 +405,7 @@ private fun CredentialEntryContent(
         OutlinedTextField(
             value         = password,
             onValueChange = { password = it },
-            label         = { Text("Password (leave empty for open network)") },
+            label         = { Text(stringResource(R.string.setup_password_optional)) },
             singleLine    = true,
             visualTransformation = if (showPass) VisualTransformation.None
                                    else PasswordVisualTransformation(),
@@ -412,7 +414,7 @@ private fun CredentialEntryContent(
                 IconButton(onClick = { showPass = !showPass }) {
                     Icon(
                         if (showPass) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = if (showPass) "Hide password" else "Show password"
+                        contentDescription = stringResource(if (showPass) R.string.hide_password else R.string.show_password)
                     )
                 }
             },
@@ -426,7 +428,7 @@ private fun CredentialEntryContent(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Submit")
+            Text(stringResource(R.string.setup_submit))
         }
     }
 }
@@ -441,16 +443,16 @@ private fun MonitoringContent(onFinish: () -> Unit) {
             tint = MaterialTheme.colorScheme.primary
         )
         Spacer(Modifier.height(12.dp))
-        Text("Credentials Staged", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.setup_staged_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(
-            "The controller has the credentials ready. Tap Finish to apply them.",
+            stringResource(R.string.setup_staged_text),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(24.dp))
         Button(onClick = onFinish, modifier = Modifier.fillMaxWidth()) {
-            Text("Finish")
+            Text(stringResource(R.string.setup_finish))
         }
     }
 }
@@ -469,7 +471,7 @@ private fun FinishFailedContent(
             tint = MaterialTheme.colorScheme.error
         )
         Spacer(Modifier.height(12.dp))
-        Text("Connection Failed", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.setup_failed_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(
             step.message,
@@ -479,17 +481,17 @@ private fun FinishFailedContent(
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "You can edit the credentials and try again, or start over.",
+            stringResource(R.string.setup_failed_hint),
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(24.dp))
         Button(onClick = onEditCredentials, modifier = Modifier.fillMaxWidth()) {
-            Text("Edit Credentials")
+            Text(stringResource(R.string.setup_edit_credentials))
         }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(onClick = onReset, modifier = Modifier.fillMaxWidth()) {
-            Text("Start Over")
+            Text(stringResource(R.string.setup_start_over))
         }
     }
 }
@@ -504,16 +506,16 @@ private fun SuccessContent(onDone: () -> Unit) {
             tint = MaterialTheme.colorScheme.primary
         )
         Spacer(Modifier.height(16.dp))
-        Text("Provisioning Finished", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.setup_success_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Device credentials stored! Reconnect your phone to your home WiFi network, then scan for the device in the AmbiBack app.",
+            stringResource(R.string.setup_success_text),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(24.dp))
         Button(onClick = onDone, modifier = Modifier.fillMaxWidth()) {
-            Text("Done")
+            Text(stringResource(R.string.done))
         }
     }
 }
@@ -528,7 +530,7 @@ private fun WpsInstructionsContent(step: ProvisioningStep.WpsInstructions, onDon
             tint = MaterialTheme.colorScheme.primary
         )
         Spacer(Modifier.height(16.dp))
-        Text("WPS Started", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.setup_wps_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(
             step.message,
@@ -537,19 +539,19 @@ private fun WpsInstructionsContent(step: ProvisioningStep.WpsInstructions, onDon
         )
         Spacer(Modifier.height(12.dp))
         Text(
-            "Press the WPS button on your router now. The controller may leave setup WiFi or reboot while pairing.",
+            stringResource(R.string.setup_wps_press),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "After that, reconnect your phone to the normal WiFi network and scan for the device in the AmbiBack app.",
+            stringResource(R.string.setup_wps_after),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(24.dp))
         Button(onClick = onDone, modifier = Modifier.fillMaxWidth()) {
-            Text("Back to Devices")
+            Text(stringResource(R.string.setup_back_to_devices))
         }
     }
 }
@@ -564,16 +566,16 @@ private fun ExpiredContent(step: ProvisioningStep.Expired, onReset: () -> Unit) 
             tint = MaterialTheme.colorScheme.error
         )
         Spacer(Modifier.height(16.dp))
-        Text("Setup Expired", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.setup_expired_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(
-            text = step.message.ifEmpty { "The 60-second setup window has expired. Please restart the AmbiBack controller and try again." },
+            text = step.message.ifEmpty { stringResource(R.string.setup_expired_text) },
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(24.dp))
         Button(onClick = onReset, modifier = Modifier.fillMaxWidth()) {
-            Text("Start Over")
+            Text(stringResource(R.string.setup_start_over))
         }
     }
 }
@@ -592,7 +594,7 @@ private fun ErrorContent(
             tint = MaterialTheme.colorScheme.error
         )
         Spacer(Modifier.height(12.dp))
-        Text("Error", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.error_title), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(
             step.message,
@@ -603,12 +605,12 @@ private fun ErrorContent(
         Spacer(Modifier.height(24.dp))
         if (step.canRetry) {
             Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) {
-                Text("Start Over")
+                Text(stringResource(R.string.setup_start_over))
             }
             Spacer(Modifier.height(8.dp))
         }
         OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("Cancel")
+            Text(stringResource(R.string.cancel))
         }
     }
 }

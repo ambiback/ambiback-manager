@@ -68,6 +68,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -77,6 +78,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ambiback.manager.R
 import com.ambiback.manager.data.usb.UsbConnectionState
 import com.ambiback.manager.data.usb.UsbDeviceInfo
 import com.ambiback.manager.ui.theme.LedAmbient
@@ -112,7 +114,7 @@ fun UsbDeviceScreen(
                 viewModel.clearStatus()
             }
             is UsbDeviceViewModel.CommandStatus.Error -> {
-                snackbarHostState.showSnackbar("Error: ${s.message}")
+                snackbarHostState.showSnackbar(context.getString(R.string.usb_error, s.message))
                 viewModel.clearStatus()
             }
             else -> Unit
@@ -161,15 +163,15 @@ fun UsbDeviceScreen(
         AlertDialog(
             onDismissRequest = { showResetWifiDialog = false },
             icon    = { Icon(Icons.Default.WifiOff, contentDescription = null) },
-            title   = { Text("Reset WiFi?") },
-            text    = { Text("This will erase the device's stored WiFi credentials. The device will reboot and disconnect from the network.") },
+            title   = { Text(stringResource(R.string.usb_reset_wifi_title)) },
+            text    = { Text(stringResource(R.string.usb_reset_wifi_text)) },
             confirmButton = {
                 TextButton(onClick = { showResetWifiDialog = false; viewModel.resetWifi() }) {
-                    Text("Reset", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.usb_reset), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showResetWifiDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showResetWifiDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -178,16 +180,16 @@ fun UsbDeviceScreen(
         AlertDialog(
             onDismissRequest = { showFactoryResetDialog = false },
             icon    = { Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-            title   = { Text("Factory Reset?") },
-            text    = { Text("This will erase ALL device settings including WiFi, LED configuration and relay data. This cannot be undone.") },
+            title   = { Text(stringResource(R.string.usb_factory_title)) },
+            text    = { Text(stringResource(R.string.usb_factory_text)) },
             confirmButton = {
                 Button(
                     onClick = { showFactoryResetDialog = false; viewModel.factoryReset() },
                     colors  = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) { Text("Factory Reset") }
+                ) { Text(stringResource(R.string.usb_factory_reset)) }
             },
             dismissButton = {
-                TextButton(onClick = { showFactoryResetDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showFactoryResetDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -196,22 +198,20 @@ fun UsbDeviceScreen(
         AlertDialog(
             onDismissRequest = { showFlashConfirmDialog = false },
             icon    = { Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-            title   = { Text("Flash Firmware?") },
+            title   = { Text(stringResource(R.string.usb_flash_title)) },
             text    = {
                 Text(
-                    "This will erase and rewrite the device firmware. " +
-                        "Do not unplug the USB cable or leave this screen until flashing completes. " +
-                        "Selected: ${state.selectedFirmwareName ?: "firmware.zip"}"
+                    stringResource(R.string.usb_flash_text, state.selectedFirmwareName ?: "firmware.zip")
                 )
             },
             confirmButton = {
                 Button(onClick = {
                     showFlashConfirmDialog = false
                     viewModel.flashFirmware()
-                }) { Text("Flash") }
+                }) { Text(stringResource(R.string.usb_flash)) }
             },
             dismissButton = {
-                TextButton(onClick = { showFlashConfirmDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showFlashConfirmDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -220,10 +220,10 @@ fun UsbDeviceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("USB Device") },
+                title = { Text(stringResource(R.string.usb_device)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
                     }
                 }
             )
@@ -254,7 +254,7 @@ fun UsbDeviceScreen(
             )
 
             // ── Device Info ───────────────────────────────────────────────────
-            SectionCard(title = "Device Info") {
+            SectionCard(title = stringResource(R.string.usb_section_info)) {
                 Button(
                     onClick   = { viewModel.getInfo() },
                     enabled   = !isBusy,
@@ -271,7 +271,7 @@ fun UsbDeviceScreen(
                         Icon(Icons.Default.Info, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                     }
-                    Text("Get Info")
+                    Text(stringResource(R.string.usb_get_info))
                 }
 
                 AnimatedVisibility(visible = state.deviceInfo != null) {
@@ -280,7 +280,7 @@ fun UsbDeviceScreen(
             }
 
             // ── WiFi Configuration ────────────────────────────────────────────
-            SectionCard(title = "WiFi Configuration") {
+            SectionCard(title = stringResource(R.string.usb_section_wifi)) {
                 // The permission only pre-fills the SSID; typing it by hand always works.
                 if (!hasLocationPermission) {
                     PermissionExplanationCard(
@@ -292,7 +292,7 @@ fun UsbDeviceScreen(
                     OutlinedTextField(
                         value         = state.wifiSsid,
                         onValueChange = { viewModel.updateWifiSsid(it) },
-                        label         = { Text("WiFi SSID") },
+                        label         = { Text(stringResource(R.string.setup_ssid)) },
                         leadingIcon   = { Icon(Icons.Default.Wifi, contentDescription = null) },
                         singleLine    = true,
                         enabled       = !isBusy,
@@ -305,7 +305,7 @@ fun UsbDeviceScreen(
                     OutlinedTextField(
                         value         = passwordText,
                         onValueChange = { passwordText = it },
-                        label         = { Text("WiFi Password") },
+                        label         = { Text(stringResource(R.string.wifi_password)) },
                         singleLine    = true,
                         enabled       = !isBusy,
                         modifier      = Modifier.fillMaxWidth(),
@@ -321,7 +321,7 @@ fun UsbDeviceScreen(
                                 Icon(
                                     if (passwordVisible) Icons.Default.VisibilityOff
                                     else Icons.Default.Visibility,
-                                    contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                                    contentDescription = stringResource(if (passwordVisible) R.string.hide_password else R.string.show_password)
                                 )
                             }
                         }
@@ -340,7 +340,7 @@ fun UsbDeviceScreen(
                         ) {
                             Icon(Icons.Default.Wifi, contentDescription = null)
                             Spacer(Modifier.width(6.dp))
-                            Text("Set WiFi")
+                            Text(stringResource(R.string.usb_set_wifi))
                         }
 
                         OutlinedButton(
@@ -350,14 +350,14 @@ fun UsbDeviceScreen(
                         ) {
                             Icon(Icons.Default.WifiOff, contentDescription = null)
                             Spacer(Modifier.width(6.dp))
-                            Text("Reset WiFi")
+                            Text(stringResource(R.string.usb_reset_wifi))
                         }
                     }
                 }
             }
 
             // ── Firmware Update ───────────────────────────────────────────────
-            SectionCard(title = "Firmware Update") {
+            SectionCard(title = stringResource(R.string.usb_section_firmware)) {
                 OutlinedButton(
                     onClick  = { firmwarePicker.launch(arrayOf("application/zip", "application/octet-stream", "*/*")) },
                     enabled  = !isBusy,
@@ -365,7 +365,7 @@ fun UsbDeviceScreen(
                 ) {
                     Icon(Icons.Default.FolderOpen, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Select Flash Package (.zip)…")
+                    Text(stringResource(R.string.usb_select_package))
                 }
 
                 if (state.selectedFirmwareName != null) {
@@ -384,7 +384,7 @@ fun UsbDeviceScreen(
                     enabled  = !isBusy && state.selectedFirmwareUri != null,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Flash Firmware")
+                    Text(stringResource(R.string.usb_flash_firmware))
                 }
 
                 AnimatedVisibility(visible = state.isFlashing || (state.flashProgress > 0f && state.flashProgress < 1f)) {
@@ -404,7 +404,7 @@ fun UsbDeviceScreen(
             }
 
             // ── Danger Zone (last, away from everyday actions) ────────────────
-            SectionCard(title = "Danger Zone") {
+            SectionCard(title = stringResource(R.string.usb_section_danger)) {
                 OutlinedButton(
                     onClick  = { showFactoryResetDialog = true },
                     enabled  = !isBusy,
@@ -413,7 +413,7 @@ fun UsbDeviceScreen(
                 ) {
                     Icon(Icons.Default.Delete, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Factory Reset")
+                    Text(stringResource(R.string.usb_factory_reset))
                 }
             }
 
@@ -431,21 +431,21 @@ private fun ConnectionStatusCard(
 ) {
     val (label, dotColor, hint) = when (state) {
         is UsbConnectionState.Connected ->
-            Triple("Connected: ${state.deviceName}", LedAmbient, null)
+            Triple(stringResource(R.string.usb_connected, state.deviceName), LedAmbient, null)
         is UsbConnectionState.Reconnecting ->
             Triple(
-                "Reconnecting…", LedVideo,
-                "USB mode changed — waiting for device to re-enumerate. This takes a few seconds."
+                stringResource(R.string.usb_reconnecting), LedVideo,
+                stringResource(R.string.usb_reconnecting_hint)
             )
         is UsbConnectionState.RequestingPermission ->
             Triple(
-                "Requesting USB permission…", LedVideo,
-                "Tap Allow in the Android permission dialog. If it disappeared, unplug and replug the cable."
+                stringResource(R.string.usb_requesting), LedVideo,
+                stringResource(R.string.usb_requesting_hint)
             )
         is UsbConnectionState.Disconnected ->
             Triple(
-                "Disconnected", MaterialTheme.colorScheme.error,
-                "USB cable connected but not detected? Select \"This device\" in Android USB settings so the phone acts as USB host."
+                stringResource(R.string.usb_disconnected), MaterialTheme.colorScheme.error,
+                stringResource(R.string.usb_disconnected_hint)
             )
     }
     Card(
@@ -475,7 +475,7 @@ private fun ConnectionStatusCard(
                 ) {
                     Icon(Icons.Default.Usb, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Open USB Settings")
+                    Text(stringResource(R.string.usb_open_settings))
                 }
             }
         }
@@ -491,12 +491,12 @@ private fun DeviceInfoCard(info: UsbDeviceInfo) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            InfoRow("Type",    info.deviceType)
-            InfoRow("Version", info.deviceVersion)
-            InfoRow("ID",      info.deviceId)
-            InfoRow("MAC",     info.deviceMac)
-            InfoRow("Name",    info.deviceName)
-            InfoRow("IP",      info.deviceIp)
+            InfoRow(stringResource(R.string.usb_info_type), info.deviceType)
+            InfoRow(stringResource(R.string.usb_info_version), info.deviceVersion)
+            InfoRow(stringResource(R.string.usb_info_id), info.deviceId)
+            InfoRow(stringResource(R.string.usb_info_mac), info.deviceMac)
+            InfoRow(stringResource(R.string.usb_info_name), info.deviceName)
+            InfoRow(stringResource(R.string.usb_info_ip), info.deviceIp)
         }
     }
 }
@@ -527,15 +527,15 @@ private fun PermissionExplanationCard(onGrantClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
-                text  = "Fill in the SSID automatically?",
+                text  = stringResource(R.string.usb_ssid_title),
                 style = MaterialTheme.typography.titleSmall
             )
             Text(
-                text  = "Android only shares the name of your current WiFi network (SSID) with apps that have Location permission. It is used for nothing else. You can also type the SSID below.",
+                text  = stringResource(R.string.usb_ssid_text),
                 style = MaterialTheme.typography.bodySmall
             )
             Button(onClick = onGrantClick, modifier = Modifier.fillMaxWidth()) {
-                Text("Grant Location Permission")
+                Text(stringResource(R.string.usb_grant_location))
             }
         }
     }
