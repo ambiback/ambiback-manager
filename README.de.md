@@ -10,7 +10,7 @@ Wie die App bedient wird, steht mit Bildern im [Benutzerhandbuch](docs/BENUTZERH
 
 ## Status
 
-- Version 1.3, Android 8.0 (API 26) oder neuer.
+- Version 1.4, Android 8.0 (API 26) oder neuer.
 - Die CI baut die App und führt bei jeder Änderung die Unit-Tests und Lint aus.
 - **Die App wurde nicht auf einem echten Gerät und nicht mit echter AmbiBack-Hardware getestet.**
 - AmbiBack-Geräte werden seit rund fünf Jahren nicht mehr verkauft. Dieses Repository dient dem Eigenbau und der Weiterentwicklung, ohne Produktsupport. Mehr auf [ambiback.de](https://www.ambiback.de/).
