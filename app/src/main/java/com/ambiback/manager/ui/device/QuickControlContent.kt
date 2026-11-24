@@ -41,6 +41,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -803,26 +804,34 @@ private fun SimpleColorPicker(
                     .semantics { contentDescription = selectedLabel }
             )
         }
-        Spacer(Modifier.height(8.dp))
-        // Spectrum strip lines up with the hue slider below, so the thumb points at the color.
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp)
-                .height(10.dp)
-                .clip(RoundedCornerShape(5.dp))
-                .background(Brush.horizontalGradient((0..12).map { i -> Color.hsv(i * 30f, 1f, 1f) }))
-        )
-        Slider(
-            value = hue,
-            onValueChange = { hue = it },
-            onValueChangeFinished = ::commit,
-            valueRange = 0f..360f,
-            enabled = enabled,
-            modifier = Modifier
-                .fillMaxWidth()
-                .semantics { contentDescription = hueLabel }
-        )
+        // The color spectrum is the hue slider's track, so the thumb sits on the chosen color.
+        Box(contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
+                    .height(16.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Brush.horizontalGradient((0..12).map { i -> Color.hsv(i * 30f, 1f, 1f) }))
+            )
+            Slider(
+                value = hue,
+                onValueChange = { hue = it },
+                onValueChangeFinished = ::commit,
+                valueRange = 0f..360f,
+                enabled = enabled,
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.onSurface,
+                    activeTrackColor = Color.Transparent,
+                    inactiveTrackColor = Color.Transparent,
+                    disabledActiveTrackColor = Color.Transparent,
+                    disabledInactiveTrackColor = Color.Transparent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = hueLabel }
+            )
+        }
         Text(saturationLabel, style = MaterialTheme.typography.labelLarge)
         Slider(
             value = saturation,

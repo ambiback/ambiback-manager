@@ -120,15 +120,12 @@ fun DeviceListScreen(
                 title = { Text(stringResource(R.string.devices_title)) },
                 actions = {
                     // Pull to refresh is the gesture; this is the same action as a button.
+                    // Progress shows in the list itself, so the button only disables.
                     IconButton(onClick = { viewModel.scan() }, enabled = !uiState.isScanning) {
-                        if (uiState.isScanning) {
-                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = stringResource(R.string.scan_for_devices)
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = stringResource(R.string.scan_for_devices)
+                        )
                     }
                     IconButton(onClick = onNavigateToProvisioning) {
                         Icon(
@@ -197,7 +194,8 @@ fun DeviceListScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         PullToRefreshBox(
-            isRefreshing = uiState.isScanning,
+            // An empty list shows its own centered progress; avoid a second spinner on top.
+            isRefreshing = uiState.isScanning && uiState.devices.isNotEmpty(),
             onRefresh = { viewModel.scan() },
             modifier = Modifier
                 .fillMaxSize()

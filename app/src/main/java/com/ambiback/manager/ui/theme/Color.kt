@@ -11,8 +11,10 @@ val OnPrimaryContainer = Color(0xFF21005D)
 // Secondary — teal accent
 val Secondary = Color(0xFF00BCD4)
 val OnSecondary = Color(0xFF000000)
-val SecondaryContainer = Color(0xFFCCF2F6)
-val OnSecondaryContainer = Color(0xFF001F24)
+// Containers (selected chips, slider tracks) stay in the purple family; the teal
+// container made every slider and chip a second accent color next to the purple.
+val SecondaryContainer = Color(0xFFE8DEF8)
+val OnSecondaryContainer = Color(0xFF1D192B)
 
 // Tertiary — amber for LED status
 val Tertiary = Color(0xFFF9A825)
@@ -26,8 +28,8 @@ val PrimaryDark = Color(0xFFD0BCFF)
 val OnPrimaryDark = Color(0xFF381E72)
 val PrimaryContainerDark = Color(0xFF4F378B)
 val OnPrimaryContainerDark = Color(0xFFEADDFF)
-val SecondaryContainerDark = Color(0xFF004F58)
-val OnSecondaryContainerDark = Color(0xFF97F0FF)
+val SecondaryContainerDark = Color(0xFF4A4458)
+val OnSecondaryContainerDark = Color(0xFFE8DEF8)
 val TertiaryContainerDark = Color(0xFF5C4300)
 val OnTertiaryContainerDark = Color(0xFFFFDF9E)
 

@@ -30,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -140,8 +141,9 @@ fun DeviceDetailScreen(
                 }
             }
 
-            // Keep all tabs composed so WebViews survive tab switches.
-            Box(modifier = Modifier.fillMaxSize()) {
+            // Keep all tabs composed so WebViews survive tab switches. Clip, or a WebView
+            // can draw over the tab row.
+            Box(modifier = Modifier.fillMaxSize().clipToBounds()) {
                 TabPane(visible = selectedTab == TAB_QUICK) {
                     QuickControlContent(uiState = uiState, viewModel = viewModel)
                 }
@@ -171,11 +173,11 @@ private fun TabPane(visible: Boolean, content: @Composable () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .zIndex(if (visible) 1f else 0f)
-            .alpha(if (visible) 1f else 0f)
-            // Hidden panes neither take taps nor show up for screen readers.
+            // Hidden panes are invisible, take no taps and are skipped by screen readers.
             .then(
                 if (visible) Modifier
                 else Modifier
+                    .alpha(0f)
                     .clearAndSetSemantics { }
                     .pointerInput(Unit) { awaitPointerEventScope { while (true) { awaitPointerEvent() } } }
             )

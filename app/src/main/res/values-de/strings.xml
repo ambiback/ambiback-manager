@@ -38,8 +38,8 @@
     <string name="mode_relay">Relay</string>
     <string name="mode_demo">Demo</string>
 
-    <string name="tab_quick_control">Schnellsteuerung</string>
-    <string name="tab_full_control">Vollsteuerung</string>
+    <string name="tab_quick_control">Steuerung</string>
+    <string name="tab_full_control">Erweitert</string>
     <string name="tab_web_interface">Weboberfläche</string>
     <string name="config_load_failed">Die Controller-Einstellungen konnten nicht geladen werden.</string>
     <string name="web_load_failed">Die Controller-Seite unter %1$s ließ sich nicht öffnen. Prüfen Sie, ob er eingeschaltet und im selben Netzwerk ist.</string>
