@@ -155,4 +155,4 @@ Prüfen Sie, ob Telefon und Controller im selben WLAN sind. Ein aktives VPN oder
 Tippen Sie auf **Erneut versuchen**. Hilft das nicht, erhöhen Sie in den Einstellungen das HTTP-Timeout.
 
 **Der Reiter „Erweitert“ bleibt leer oder schwarz.**
-Die Oberfläche braucht einen aktuellen Android System WebView. Aktualisieren Sie „Android System WebView“ im Play Store. Bis dahin funktioniert der Reiter **Weboberfläche**.
+Der Reiter läuft auch mit älteren Versionen von „Android System WebView“, wie sie auf Android 8 bis 10 oft noch installiert sind. Bleibt er trotzdem leer, aktualisieren Sie „Android System WebView“ im Play Store. Bis dahin funktioniert der Reiter **Weboberfläche**.
