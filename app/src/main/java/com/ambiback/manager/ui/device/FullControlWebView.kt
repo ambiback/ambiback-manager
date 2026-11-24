@@ -3,16 +3,19 @@ package com.ambiback.manager.ui.device
 import android.annotation.SuppressLint
 import android.content.Context
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,19 +33,37 @@ private const val FULL_CONTROL_ENTRY_ASSET = "fullcontrol/index.html"
 private const val FULL_CONTROL_ENTRY_PATH = "/assets/fullcontrol/index.html"
 private const val FULL_CONTROL_BASE_URL = "https://appassets.androidplatform.net$FULL_CONTROL_ENTRY_PATH"
 
+/**
+ * @param active whether this tab is on screen; only then does Back navigate inside the page.
+ * @param reloadSignal reloads the page each time the value increases.
+ */
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun FullControlWebView(deviceIp: String, claimKey: String? = null) {
+fun FullControlWebView(
+    deviceIp: String,
+    claimKey: String? = null,
+    active: Boolean = true,
+    reloadSignal: Int = 0
+) {
     var webView: WebView? by remember { mutableStateOf(null) }
     val currentClaimKey by rememberUpdatedState(claimKey)
+    var progress by remember { mutableIntStateOf(0) }
+    var loadFailed by remember { mutableStateOf(false) }
 
     LaunchedEffect(webView, claimKey) {
         webView?.let { injectClaimKey(it, deviceIp, claimKey) }
     }
     var canGoBack by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = canGoBack) {
+    BackHandler(enabled = active && canGoBack) {
         webView?.goBack()
+    }
+
+    LaunchedEffect(reloadSignal) {
+        if (reloadSignal > 0) {
+            loadFailed = false
+            webView?.reload()
+        }
     }
 
     DisposableEffect(Unit) {
@@ -56,78 +77,101 @@ fun FullControlWebView(deviceIp: String, claimKey: String? = null) {
         }
     }
 
-    AndroidView(
-        factory = { context ->
-            val assetLoader = WebViewAssetLoader.Builder()
-                .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
-                .build()
+    Box(modifier = Modifier.fillMaxSize()) {
+        AndroidView(
+            factory = { context ->
+                val assetLoader = WebViewAssetLoader.Builder()
+                    .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
+                    .build()
 
-            WebView(context).apply {
-                settings.apply {
-                    javaScriptEnabled = true
-                    domStorageEnabled = true
-                    loadWithOverviewMode = true
-                    useWideViewPort = true
-                    builtInZoomControls = true
-                    displayZoomControls = false
-                    mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-                    allowContentAccess = true
-                }
+                WebView(context).apply {
+                    settings.apply {
+                        javaScriptEnabled = true
+                        domStorageEnabled = true
+                        loadWithOverviewMode = true
+                        useWideViewPort = true
+                        builtInZoomControls = true
+                        displayZoomControls = false
+                        mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                        allowContentAccess = true
+                    }
 
-                webViewClient = object : WebViewClient() {
-                    override fun shouldInterceptRequest(
-                        view: WebView,
-                        request: WebResourceRequest
-                    ): WebResourceResponse? {
-                        val requestUrl = request.url
-                        return if (requestUrl.path == FULL_CONTROL_ENTRY_PATH) {
-                            try {
-                                createBootstrappedIndexResponse(context, deviceIp)
-                            } catch (_: IOException) {
+                    webViewClient = object : WebViewClient() {
+                        override fun shouldInterceptRequest(
+                            view: WebView,
+                            request: WebResourceRequest
+                        ): WebResourceResponse? {
+                            val requestUrl = request.url
+                            return if (requestUrl.path == FULL_CONTROL_ENTRY_PATH) {
+                                try {
+                                    createBootstrappedIndexResponse(context, deviceIp)
+                                } catch (_: IOException) {
+                                    assetLoader.shouldInterceptRequest(requestUrl)
+                                }
+                            } else {
                                 assetLoader.shouldInterceptRequest(requestUrl)
                             }
-                        } else {
-                            assetLoader.shouldInterceptRequest(requestUrl)
+                        }
+
+                        override fun shouldOverrideUrlLoading(
+                            view: WebView,
+                            request: WebResourceRequest
+                        ): Boolean {
+                            val original = request.url.toString()
+                            val corrected = rewriteDeviceParam(original, deviceIp)
+                            return if (corrected != original) {
+                                view.loadUrl(corrected)
+                                true
+                            } else {
+                                false
+                            }
+                        }
+
+                        override fun onPageFinished(view: WebView, url: String?) {
+                            injectClaimKey(view, deviceIp, currentClaimKey)
+                            canGoBack = view.canGoBack()
+                        }
+
+                        override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
+                            canGoBack = view.canGoBack()
+                        }
+
+                        override fun onReceivedError(
+                            view: WebView,
+                            request: WebResourceRequest,
+                            error: WebResourceError
+                        ) {
+                            if (request.isForMainFrame) loadFailed = true
                         }
                     }
 
-                    override fun shouldOverrideUrlLoading(
-                        view: WebView,
-                        request: WebResourceRequest
-                    ): Boolean {
-                        val original = request.url.toString()
-                        val corrected = rewriteDeviceParam(original, deviceIp)
-                        return if (corrected != original) {
-                            view.loadUrl(corrected)
-                            true
-                        } else {
-                            false
+                    webChromeClient = object : WebChromeClient() {
+                        override fun onProgressChanged(view: WebView, newProgress: Int) {
+                            progress = newProgress
                         }
                     }
-
-                    override fun onPageFinished(view: WebView, url: String?) {
-                        injectClaimKey(view, deviceIp, currentClaimKey)
-                        canGoBack = view.canGoBack()
-                    }
-
-                    override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
-                        canGoBack = view.canGoBack()
-                    }
+                    loadUrl(fullControlUrl(deviceIp))
+                    webView = this
                 }
-
-                webChromeClient = WebChromeClient()
-                loadUrl(fullControlUrl(deviceIp))
-                webView = this
+            },
+            update = { view ->
+                val expectedUrl = fullControlUrl(deviceIp)
+                if (!view.url.orEmpty().contains("device=$deviceIp")) {
+                    view.loadUrl(expectedUrl)
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+        WebLoadOverlay(
+            progress = progress,
+            failed = loadFailed,
+            address = deviceIp,
+            onRetry = {
+                loadFailed = false
+                webView?.loadUrl(fullControlUrl(deviceIp))
             }
-        },
-        update = { view ->
-            val expectedUrl = fullControlUrl(deviceIp)
-            if (!view.url.orEmpty().contains("device=$deviceIp")) {
-                view.loadUrl(expectedUrl)
-            }
-        },
-        modifier = Modifier.fillMaxSize()
-    )
+        )
+    }
 }
 
 /** Hands the device key to the embedded UI. Only validated hex keys reach the script. */

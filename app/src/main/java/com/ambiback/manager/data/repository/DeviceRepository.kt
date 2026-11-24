@@ -73,7 +73,7 @@ class DeviceRepository @Inject constructor(
             deviceIp = config.deviceIp.ifBlank { deviceIp },
             deviceType = config.deviceType,
             deviceVersion = config.deviceVersion,
-            ledStatus = 0
+            ledStatus = config.ledMode
         )
     }
 

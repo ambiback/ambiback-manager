@@ -24,6 +24,8 @@ data class DeviceListUiState(
     val isAddingByIp: Boolean = false,
     val scanComplete: Boolean = false,
     val error: String? = null,
+    /** Why the last "Add by IP" attempt failed; shown inside the dialog, not behind it. */
+    val addByIpError: String? = null,
     /** Device keys that were restored from storage but not yet confirmed by a live scan. */
     val unverifiedKeys: Set<String> = emptySet()
 )
@@ -113,6 +115,8 @@ class DeviceListViewModel @Inject constructor(
         val stubKey = DeviceKeys.idKey(device.deviceId)
         val stub = if (key != stubKey) deviceMap.remove(stubKey) else null
         val existing = deviceMap[key] ?: stub
+        // A restored stub has no type/version; 0 there means "unknown", not "Off".
+        val isStub = device.deviceType.isBlank() && device.deviceVersion.isBlank()
         val merged = if (existing != null) {
             device.copy(
                 deviceMac = device.deviceMac.ifBlank { existing.deviceMac },
@@ -120,7 +124,7 @@ class DeviceListViewModel @Inject constructor(
                 deviceType = device.deviceType.ifBlank { existing.deviceType },
                 deviceVersion = device.deviceVersion.ifBlank { existing.deviceVersion },
                 deviceIp = device.deviceIp.ifBlank { existing.deviceIp },
-                ledStatus = if (device.ledStatus != 0) device.ledStatus else existing.ledStatus
+                ledStatus = if (isStub) existing.ledStatus else device.ledStatus
             )
         } else {
             device
@@ -146,7 +150,7 @@ class DeviceListViewModel @Inject constructor(
         }
         if (_uiState.value.isAddingByIp) return
 
-        _uiState.update { it.copy(isAddingByIp = true, error = null) }
+        _uiState.update { it.copy(isAddingByIp = true, error = null, addByIpError = null) }
         viewModelScope.launch {
             try {
                 repository.verifyDevice(normalizedIp)
@@ -157,9 +161,7 @@ class DeviceListViewModel @Inject constructor(
                         onSuccess()
                     }
                     .onFailure { e ->
-                        _uiState.update {
-                            it.copy(error = "No AmbiBack controller found at $normalizedIp: ${e.message}")
-                        }
+                        _uiState.update { it.copy(addByIpError = e.message.orEmpty()) }
                     }
             } finally {
                 _uiState.update { it.copy(isAddingByIp = false) }
@@ -196,5 +198,9 @@ class DeviceListViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }
+    }
+
+    fun clearAddByIpError() {
+        _uiState.update { it.copy(addByIpError = null) }
     }
 }
