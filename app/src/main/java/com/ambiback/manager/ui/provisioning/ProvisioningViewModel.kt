@@ -9,6 +9,7 @@ import android.net.NetworkRequest
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSpecifier
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ambiback.manager.R
@@ -260,12 +261,17 @@ class ProvisioningViewModel @Inject constructor(
         currentMac = mac
         val password = PasswordGenerator.generateApPassword(mac)
         val exactSsid = "AmbiBack $mac"
-        requestAutoConnect(exactSsid, password)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            requestAutoConnect(exactSsid, password)
+        } else {
+            step(ProvisioningStep.Error(str(R.string.setup_err_android10), canRetry = true))
+        }
     }
 
     /**
      * Android 10+ only: Connects specifically to the target SSID + Password without prompting user.
      */
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun requestAutoConnect(ssid: String, password: String) {
         step(ProvisioningStep.WaitingForAutoConnect)
 

@@ -2,7 +2,9 @@
 
 [Zurück zur Projektübersicht](../README.de.md)
 
-Mit dem AmbiBack Manager finden, einrichten und steuern Sie AmbiBack-Controller von Ihrem Android-Gerät aus. Dieses Handbuch gilt für Version 1.2.
+Mit dem AmbiBack Manager finden, einrichten und steuern Sie AmbiBack-Controller von Ihrem Android-Gerät aus. Dieses Handbuch gilt für Version 1.3.
+
+Die aktuelle Version laden Sie auf der [Release-Seite](https://github.com/ambiback/ambiback-manager/releases/latest) herunter: Öffnen Sie dort die `.apk`-Datei auf Ihrem Telefon oder scannen Sie den QR-Code. Android fragt beim ersten Mal, ob Sie Apps aus dieser Quelle installieren dürfen.
 
 > Die Bilder stammen aus einem Android-Emulator mit einem simulierten Controller („Living Room TV“ unter 127.0.0.1). Auf Ihrem Gerät sehen Name, IP-Adresse und Messwerte anders aus.
 

@@ -212,6 +212,8 @@ private fun IdleContent(onAutoConnect: () -> Unit, onManualConnect: () -> Unit) 
 
     val scanPermissions = remember {
         buildList {
+            // Android 12+ ignores a FINE request that comes without COARSE.
+            add(Manifest.permission.ACCESS_COARSE_LOCATION)
             add(Manifest.permission.ACCESS_FINE_LOCATION)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 add(Manifest.permission.NEARBY_WIFI_DEVICES)
