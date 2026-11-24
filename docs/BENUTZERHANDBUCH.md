@@ -50,20 +50,20 @@ Kennen Sie die IP-Adresse des Controllers (zum Beispiel aus Ihrem Router), wähl
 Ein neuer oder zurückgesetzter Controller hat noch kein WLAN. Er öffnet dann einen eigenen Access Point. Bei einem bereits eingerichteten Controller öffnen Sie den Access Point am Gerät: die Taste 4 bis 7 Sekunden halten oder den Strom dreimal im Abstand weniger Sekunden einschalten.
 
 1. Tippen Sie in der Geräteliste auf **+**.
-2. Tippen Sie auf **Scan for New Devices**. Die App fragt dafür nach Standort- und WLAN-Berechtigung, weil Android sonst keine WLAN-Namen herausgibt. Alternativ verbinden Sie das Telefon selbst mit dem WLAN des Controllers und tippen auf **I've connected to the device WiFi manually**.
+2. Tippen Sie auf **Nach neuen Geräten suchen**. Die App fragt dafür nach Standort- und WLAN-Berechtigung, weil Android sonst keine WLAN-Namen herausgibt. Ab Android 10 verbindet sich die App dann selbst. Sie bestätigen nur das AmbiBack-Netzwerk im Android-Dialog. Alternativ verbinden Sie das Telefon selbst mit dem WLAN des Controllers und tippen auf **Ich habe mich selbst mit dem Geräte-WLAN verbunden**.
 3. Findet die App mehrere Controller, wählen Sie einen aus.
 4. Wählen Sie, wie der Controller in Ihr WLAN kommt:
-   - **Start WPS Mode**: Danach drücken Sie die WPS-Taste an Ihrem Router.
-   - **Use WiFi Credentials**: Sie geben WLAN-Name und Passwort ein, danach tippen Sie auf **Finish**.
-5. Der Controller startet neu. Verbinden Sie das Telefon wieder mit Ihrem normalen WLAN und suchen Sie nach Geräten.
+   - **WPS starten**: Danach drücken Sie die WPS-Taste an Ihrem Router.
+   - **WLAN-Daten eingeben**: Sie geben WLAN-Name und Passwort ein, tippen auf **Senden** und danach auf **Fertigstellen**.
+5. Der Controller startet neu. Verbinden Sie das Telefon wieder mit Ihrem gewohnten WLAN und suchen Sie nach Geräten.
+
+Klappt die Verbindung nicht, etwa wegen eines falschen Passworts, ändern Sie mit **WLAN-Daten ändern** die Eingaben und versuchen es erneut.
 
 Unten zeigt die App, wie lange das Einrichtungsfenster noch offen ist. Läuft es ab, starten Sie die Einrichtung neu.
 
 Beim Einrichten koppelt sich die App mit dem Controller und speichert einen **Geräteschlüssel**. Den brauchen Sie später für Neustart, WPS und Firmware-Updates im Browser.
 
-<img src="images/12-geraet-einrichten.png" width="300" alt="Erster Schritt der Einrichtung mit dem Knopf Scan for New Devices">
-
-> Die Einrichtungsschritte sind in dieser Version noch auf Englisch.
+<img src="images/12-geraet-einrichten.png" width="300" alt="Erster Schritt der Einrichtung mit dem Knopf Nach neuen Geräten suchen">
 
 ## Gerät steuern
 
@@ -122,16 +122,14 @@ Die Zurück-Taste Ihres Telefons blättert innerhalb dieser Seiten zurück. Erst
 
 Schließen Sie den Controller per USB-Kabel an das Telefon an. Die App öffnet den USB-Bildschirm dann von selbst. Sie erreichen ihn auch über das Menü unter **USB-Gerät**.
 
-<img src="images/13-usb.png" width="300" alt="USB-Bildschirm mit Verbindungsstatus, Get Info und WLAN-Einstellungen">
-<img src="images/14-usb-firmware.png" width="300" alt="USB-Bildschirm mit Firmware Update und Factory Reset">
+<img src="images/13-usb.png" width="300" alt="USB-Bildschirm mit Verbindungsstatus, Info abrufen und WLAN-Einstellungen">
+<img src="images/14-usb-firmware.png" width="300" alt="USB-Bildschirm mit Firmware-Update und Werkseinstellungen">
 
-- Erkennt das Telefon das Kabel nicht, öffnen Sie mit **Open USB Settings** die USB-Einstellungen und wählen dort, dass dieses Gerät die Verbindung steuert.
-- **Get Info** liest Typ, Version, MAC-Adresse, Name und IP-Adresse aus.
-- **WiFi Configuration**: WLAN-Name und Passwort eintragen und mit **Set WiFi** senden. **Reset WiFi** löscht die gespeicherten WLAN-Daten. Mit Standortberechtigung trägt die App den Namen Ihres aktuellen WLANs selbst ein. Ohne Berechtigung tippen Sie ihn ein.
-- **Firmware Update**: Flash-Paket (.zip) wählen und mit **Flash Firmware** aufspielen. Ziehen Sie das Kabel dabei nicht ab und bleiben Sie auf dem Bildschirm. Der Bildschirm bleibt währenddessen an.
-- **Factory Reset** löscht alle Einstellungen des Controllers. Das lässt sich nicht rückgängig machen.
-
-> Der USB-Bildschirm ist in dieser Version noch auf Englisch.
+- Erkennt das Telefon das Kabel nicht, öffnen Sie mit **USB-Einstellungen öffnen** die Android-Einstellungen und wählen dort „Dieses Gerät“, damit das Telefon die Verbindung steuert.
+- **Info abrufen** liest Typ, Version, ID, MAC-Adresse, Name und IP-Adresse aus.
+- **WLAN**: WLAN-Name und Passwort eintragen und mit **WLAN setzen** senden. **WLAN löschen** entfernt die gespeicherten WLAN-Daten, danach startet das Gerät neu. Mit Standortberechtigung trägt die App den Namen Ihres aktuellen WLANs selbst ein. Ohne Berechtigung tippen Sie ihn ein.
+- **Firmware-Update**: Mit **Flash-Paket (.zip) wählen** die Datei aussuchen und mit **Firmware aufspielen** übertragen. Ein Balken zeigt den Fortschritt. Ziehen Sie das Kabel dabei nicht ab und bleiben Sie auf dem Bildschirm. Der Bildschirm bleibt währenddessen an.
+- **Werkseinstellungen** im Gefahrenbereich löscht alle Einstellungen des Controllers. Das lässt sich nicht rückgängig machen.
 
 ## Einstellungen
 

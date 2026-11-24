@@ -3,6 +3,7 @@ package com.ambiback.manager.data.usb
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
+import com.ambiback.manager.R
 import android.content.Intent
 import android.content.IntentFilter
 import android.hardware.usb.UsbDevice
@@ -176,7 +177,7 @@ class UsbSerialManager @Inject constructor(
      * Always runs on Dispatchers.IO.
      */
     suspend fun sendCommand(cmd: ByteArray, timeoutMs: Int = 2000): String = withContext(Dispatchers.IO) {
-        val port = openPort ?: throw IllegalStateException("USB device not connected")
+        val port = openPort ?: throw IllegalStateException(context.getString(R.string.usb_not_connected))
         port.write(cmd, timeoutMs)
         val buffer = ByteArray(4096)
         val sb = StringBuilder()

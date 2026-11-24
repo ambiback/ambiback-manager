@@ -1,15 +1,18 @@
 package com.ambiback.manager.ui.device
 
+import android.content.Context
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ambiback.manager.R
 import com.ambiback.manager.data.local.ClaimKeyStore
 import com.ambiback.manager.data.model.DeviceConfig
 import com.ambiback.manager.data.model.DeviceStatus
 import com.ambiback.manager.data.model.LedMode
 import com.ambiback.manager.data.repository.DeviceRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,6 +52,7 @@ data class DeviceDetailUiState(
 class DeviceDetailViewModel @Inject constructor(
     private val repository: DeviceRepository,
     private val claimKeyStore: ClaimKeyStore,
+    @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -89,7 +93,7 @@ class DeviceDetailViewModel @Inject constructor(
                 val configOk = fetchConfig(keepLoadedOnError = hadConfig)
                 fetchStatus()
                 if (!configOk && hadConfig) {
-                    _uiState.update { it.copy(actionError = REFRESH_FAILED) }
+                    _uiState.update { it.copy(actionError = context.getString(R.string.refresh_failed)) }
                 }
             } finally {
                 _uiState.update { it.copy(isRefreshing = false) }
@@ -106,7 +110,7 @@ class DeviceDetailViewModel @Inject constructor(
             },
             onFailure = { e ->
                 if (!keepLoadedOnError) {
-                    _uiState.update { it.copy(configState = UiState.Error(e.message ?: "Failed to load config")) }
+                    _uiState.update { it.copy(configState = UiState.Error(e.message ?: context.getString(R.string.net_err_unknown))) }
                 }
                 false
             }
@@ -116,7 +120,7 @@ class DeviceDetailViewModel @Inject constructor(
         repository.getStatus(deviceIp).fold(
             onSuccess = { status -> applyStatus(status) },
             onFailure = { e ->
-                _uiState.update { it.copy(statusState = UiState.Error(e.message ?: "Failed to load status")) }
+                _uiState.update { it.copy(statusState = UiState.Error(e.message ?: context.getString(R.string.net_err_unknown))) }
             }
         )
     }
@@ -231,7 +235,6 @@ class DeviceDetailViewModel @Inject constructor(
     private companion object {
         const val SOLID_PRESET = 0
         const val STATUS_SETTLE_MS = 800L
-        const val REFRESH_FAILED = "Could not refresh. Showing the last loaded values."
     }
 
     override fun onCleared() {
