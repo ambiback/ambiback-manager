@@ -91,8 +91,10 @@ fun ProvisioningScreen(
                 BottomAppBar {
                     Text(
                         text = "Setup window expires in: ${uiState.expiresInMs / 1000}s",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelLarge,
+                        // Only turn red when time is actually running short.
+                        color = if (uiState.expiresInMs <= 15_000) MaterialTheme.colorScheme.error
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),

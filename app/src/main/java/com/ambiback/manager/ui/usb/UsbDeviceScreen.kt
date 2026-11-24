@@ -281,15 +281,18 @@ fun UsbDeviceScreen(
 
             // ── WiFi Configuration ────────────────────────────────────────────
             SectionCard(title = "WiFi Configuration") {
+                // The permission only pre-fills the SSID; typing it by hand always works.
                 if (!hasLocationPermission) {
                     PermissionExplanationCard(
                         onGrantClick = { locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }
                     )
-                } else {
+                    Spacer(Modifier.height(12.dp))
+                }
+                run {
                     OutlinedTextField(
                         value         = state.wifiSsid,
                         onValueChange = { viewModel.updateWifiSsid(it) },
-                        label         = { Text("SSID (current network)") },
+                        label         = { Text("WiFi SSID") },
                         leadingIcon   = { Icon(Icons.Default.Wifi, contentDescription = null) },
                         singleLine    = true,
                         enabled       = !isBusy,
@@ -314,9 +317,10 @@ fun UsbDeviceScreen(
                         ),
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                // Icon shows the action, as on the setup screen.
                                 Icon(
-                                    if (passwordVisible) Icons.Default.Visibility
-                                    else Icons.Default.VisibilityOff,
+                                    if (passwordVisible) Icons.Default.VisibilityOff
+                                    else Icons.Default.Visibility,
                                     contentDescription = if (passwordVisible) "Hide password" else "Show password"
                                 )
                             }
@@ -349,20 +353,6 @@ fun UsbDeviceScreen(
                             Text("Reset WiFi")
                         }
                     }
-                }
-            }
-
-            // ── Danger Zone ───────────────────────────────────────────────────
-            SectionCard(title = "Danger Zone") {
-                Button(
-                    onClick  = { showFactoryResetDialog = true },
-                    enabled  = !isBusy,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors   = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Icon(Icons.Default.Delete, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Factory Reset")
                 }
             }
 
@@ -410,6 +400,20 @@ fun UsbDeviceScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                }
+            }
+
+            // ── Danger Zone (last, away from everyday actions) ────────────────
+            SectionCard(title = "Danger Zone") {
+                OutlinedButton(
+                    onClick  = { showFactoryResetDialog = true },
+                    enabled  = !isBusy,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors   = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Factory Reset")
                 }
             }
 
@@ -523,11 +527,11 @@ private fun PermissionExplanationCard(onGrantClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
-                text  = "Location permission required",
+                text  = "Fill in the SSID automatically?",
                 style = MaterialTheme.typography.titleSmall
             )
             Text(
-                text  = "Android requires Location permission to read your phone's connected WiFi network name (SSID). This is only used to auto-fill the SSID field.",
+                text  = "Android only shares the name of your current WiFi network (SSID) with apps that have Location permission. It is used for nothing else. You can also type the SSID below.",
                 style = MaterialTheme.typography.bodySmall
             )
             Button(onClick = onGrantClick, modifier = Modifier.fillMaxWidth()) {
