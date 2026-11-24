@@ -10,7 +10,7 @@ A user guide with screenshots is available in German: [Benutzerhandbuch](docs/BE
 
 ## Status
 
-- Version 1.3, Android 8.0 (API 26) or newer.
+- Version 1.4, Android 8.0 (API 26) or newer.
 - CI builds the app and runs the unit tests and lint on every change.
 - **The app has not been tested on a real device or with real AmbiBack hardware.**
 - AmbiBack devices have not been on sale for around five years. This repository is for DIY use and further development, with no product support. More at [ambiback.de](https://www.ambiback.de/).
