@@ -11,6 +11,7 @@ import android.net.wifi.WifiNetworkSpecifier
 import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.ambiback.manager.R
 import com.ambiback.manager.data.local.ClaimKeyStore
 import com.ambiback.manager.data.model.ProvisioningStatus
 import com.ambiback.manager.data.network.GatewayResolver
@@ -39,7 +40,7 @@ sealed class ProvisioningStep {
     object WaitingForAutoConnect : ProvisioningStep()
 
     /** Polling WiFi scan results for nearby controllers. */
-    data class Scanning(val message: String = "Scanning for AmbiBack devices…") : ProvisioningStep()
+    data class Scanning(val message: String) : ProvisioningStep()
 
     /** Showing multiple found controllers to the user. */
     data class SelectDevice(val ssids: List<String>) : ProvisioningStep()
@@ -190,7 +191,7 @@ class ProvisioningViewModel @Inject constructor(
                         }
                 .onFailure { e ->
                     step(ProvisioningStep.Error(
-                        message   = "Cannot reach controller at $ip — ${e.message}",
+                        message   = str(R.string.setup_err_unreachable, ip, e.message.orEmpty()),
                         canRetry  = true
                     ))
                 }
@@ -202,12 +203,12 @@ class ProvisioningViewModel @Inject constructor(
      */
     fun startPreScan() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            step(ProvisioningStep.Error("Auto-connect requires Android 10 or later.", canRetry = true))
+            step(ProvisioningStep.Error(str(R.string.setup_err_android10), canRetry = true))
             return
         }
 
         ensureHomeSsidCaptured()
-        step(ProvisioningStep.Scanning())
+        step(ProvisioningStep.Scanning(str(R.string.setup_scanning)))
         scanJob?.cancel()
         scanJob = viewModelScope.launch {
             val context = getApplication<Application>()
@@ -228,7 +229,7 @@ class ProvisioningViewModel @Inject constructor(
                         break
                     }
                 } catch (e: SecurityException) {
-                    step(ProvisioningStep.Error("Location permission is required to scan for setup devices.", canRetry = true))
+                    step(ProvisioningStep.Error(str(R.string.setup_err_location), canRetry = true))
                     return@launch
                 }
                 delay(1000)
@@ -236,7 +237,7 @@ class ProvisioningViewModel @Inject constructor(
 
             when {
                 foundMacs.isEmpty() -> {
-                    step(ProvisioningStep.Error("No AmbiBack devices found during scan.", canRetry = true))
+                    step(ProvisioningStep.Error(str(R.string.setup_err_none_found), canRetry = true))
                 }
                 foundMacs.size == 1 -> {
                     val mac = foundMacs.first()
@@ -300,7 +301,7 @@ class ProvisioningViewModel @Inject constructor(
                         }
                         .onFailure { e ->
                             step(ProvisioningStep.Error(
-                                message   = "Cannot reach controller at $ip — ${e.message}",
+                                message   = str(R.string.setup_err_unreachable, ip, e.message.orEmpty()),
                                 canRetry  = true
                             ))
                         }
@@ -309,7 +310,7 @@ class ProvisioningViewModel @Inject constructor(
 
             override fun onUnavailable() {
                 super.onUnavailable()
-                step(ProvisioningStep.Error("Auto-connect cancelled or timed out.", canRetry = true))
+                step(ProvisioningStep.Error(str(R.string.setup_err_connect_cancelled), canRetry = true))
             }
         }
 
@@ -339,9 +340,9 @@ class ProvisioningViewModel @Inject constructor(
             repository.startSession(connected.gatewayIp, currentClaimKey())
                 .onSuccess { status ->
                     if (status.token.isEmpty()) {
-                        step(ProvisioningStep.Error("Session started but no token received.", canRetry = true))
+                        step(ProvisioningStep.Error(str(R.string.setup_err_no_token), canRetry = true))
                     } else if (!claimIfPossible(connected.gatewayIp, status)) {
-                        step(ProvisioningStep.Error("Could not pair this app with the device.", canRetry = true))
+                        step(ProvisioningStep.Error(str(R.string.setup_err_pair), canRetry = true))
                     } else {
                         step(ProvisioningStep.EnterCredentials(
                             token = status.token,
@@ -351,7 +352,7 @@ class ProvisioningViewModel @Inject constructor(
                     }
                 }
                 .onFailure { e ->
-                    step(ProvisioningStep.Error(errorMessage("Failed to start session", e), canRetry = true))
+                    step(ProvisioningStep.Error(errorMessage(str(R.string.setup_err_start), e), canRetry = true))
                 }
         }
     }
@@ -368,21 +369,21 @@ class ProvisioningViewModel @Inject constructor(
                     if (response.status == 1) {
                         step(
                             ProvisioningStep.WpsInstructions(
-                                message = response.result.ifEmpty { "WPS mode started on the controller." },
+                                message = response.result.ifEmpty { str(R.string.setup_wps_started_default) },
                                 gatewayIp = connected.gatewayIp
                             )
                         )
                     } else {
                         step(
                             ProvisioningStep.Error(
-                                response.result.ifEmpty { "Failed to start WPS mode." },
+                                response.result.ifEmpty { str(R.string.setup_err_wps) + "." },
                                 canRetry = true
                             )
                         )
                     }
                 }
                 .onFailure { e ->
-                    step(ProvisioningStep.Error(errorMessage("Failed to start WPS mode", e), canRetry = true))
+                    step(ProvisioningStep.Error(errorMessage(str(R.string.setup_err_wps), e), canRetry = true))
                 }
         }
     }
@@ -401,7 +402,7 @@ class ProvisioningViewModel @Inject constructor(
         }
 
         if (ssid.isBlank()) {
-            step(ProvisioningStep.Error("SSID is required.", canRetry = true))
+            step(ProvisioningStep.Error(str(R.string.setup_ssid_required), canRetry = true))
             return
         }
 
@@ -419,13 +420,13 @@ class ProvisioningViewModel @Inject constructor(
 
                         else ->
                             step(ProvisioningStep.Error(
-                                response.message.ifEmpty { "Credential submission failed." },
+                                response.message.ifEmpty { str(R.string.setup_err_submit_default) },
                                 canRetry = true
                             ))
                     }
                 }
                 .onFailure { e ->
-                    step(ProvisioningStep.Error(errorMessage("Submit failed", e), canRetry = true))
+                    step(ProvisioningStep.Error(errorMessage(str(R.string.setup_err_submit), e), canRetry = true))
                 }
         }
     }
@@ -441,24 +442,24 @@ class ProvisioningViewModel @Inject constructor(
                         if (response.state == "rebooting") {
                             val rebootMs = response.rebootIn.toLongOrNull() ?: 3000L
                             enterRebooting(
-                                response.message.ifEmpty { "Rebooting device…" },
+                                response.message.ifEmpty { str(R.string.setup_rebooting_default) },
                                 rebootMs
                             )
                         } else {
                             step(ProvisioningStep.Success(
-                                response.message.ifEmpty { "Device configured successfully." }
+                                response.message.ifEmpty { str(R.string.setup_success_default) }
                             ), response.expiresIn)
                         }
                     } else {
                         step(ProvisioningStep.FinishFailed(
                             token      = monitoring.token,
                             gatewayIp  = monitoring.gatewayIp,
-                            message    = response.message.ifEmpty { "Failed to connect to the network." }
+                            message    = response.message.ifEmpty { str(R.string.setup_err_network_default) }
                         ), response.expiresIn)
                     }
                 }
                 .onFailure { e ->
-                    step(ProvisioningStep.Error(errorMessage("Finish failed", e), canRetry = false))
+                    step(ProvisioningStep.Error(errorMessage(str(R.string.setup_err_finish), e), canRetry = false))
                 }
         }
     }
@@ -479,7 +480,7 @@ class ProvisioningViewModel @Inject constructor(
                 )
             }
             if (_uiState.value.step is ProvisioningStep.Rebooting) {
-                step(ProvisioningStep.Success("Device configured successfully."))
+                step(ProvisioningStep.Success(str(R.string.setup_success_default)))
             }
         }
     }
@@ -514,6 +515,8 @@ class ProvisioningViewModel @Inject constructor(
 
     private fun currentClaimKey(): String? = claimKeyStore.get(currentMac)
 
+    private fun str(id: Int, vararg args: Any): String = getApplication<Application>().getString(id, *args)
+
     /**
      * Pairs the app with a claimable device. The key is saved before the request,
      * so a lost response cannot leave the device with a key the app does not know.
@@ -537,8 +540,7 @@ class ProvisioningViewModel @Inject constructor(
 
     private fun errorMessage(prefix: String, error: Throwable): String =
         if (error is HttpException && error.code() == 403) {
-            "This device is paired with another app. Hold its button for 4 to 7 seconds, " +
-                "or switch its power on three times within a few seconds each, then try again."
+            str(R.string.setup_err_paired_elsewhere)
         } else {
             "$prefix: ${error.message}"
         }
@@ -571,7 +573,7 @@ class ProvisioningViewModel @Inject constructor(
 
             if (_uiState.value.step == step) {
                 _uiState.value = ProvisioningUiState(
-                    step = ProvisioningStep.Expired("The 60-second setup window has expired."),
+                    step = ProvisioningStep.Expired(str(R.string.setup_expired_text)),
                     expiresInMs = 0L
                 )
             }
@@ -594,9 +596,9 @@ class ProvisioningViewModel @Inject constructor(
             repository.startSession(gatewayIp, currentClaimKey())
                 .onSuccess { status ->
                     if (status.token.isEmpty()) {
-                        step(ProvisioningStep.Error("Session restart failed — no token.", canRetry = true))
+                        step(ProvisioningStep.Error(str(R.string.setup_err_no_token), canRetry = true))
                     } else if (!claimIfPossible(gatewayIp, status)) {
-                        step(ProvisioningStep.Error("Could not pair this app with the device.", canRetry = true))
+                        step(ProvisioningStep.Error(str(R.string.setup_err_pair), canRetry = true))
                     } else {
                         step(ProvisioningStep.EnterCredentials(
                             token = status.token,
@@ -606,7 +608,7 @@ class ProvisioningViewModel @Inject constructor(
                     }
                 }
                 .onFailure { e ->
-                    step(ProvisioningStep.Error(errorMessage("Session restart failed", e), canRetry = true))
+                    step(ProvisioningStep.Error(errorMessage(str(R.string.setup_err_restart), e), canRetry = true))
                 }
         }
     }

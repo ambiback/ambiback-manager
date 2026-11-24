@@ -1,5 +1,7 @@
 package com.ambiback.manager.data.repository
 
+import android.content.Context
+import com.ambiback.manager.R
 import com.ambiback.manager.data.local.DeviceDataStore
 import com.ambiback.manager.data.local.PersistedDevice
 import com.ambiback.manager.data.model.Device
@@ -7,6 +9,7 @@ import com.ambiback.manager.data.model.DeviceConfig
 import com.ambiback.manager.data.model.DeviceStatus
 import com.ambiback.manager.data.network.RetrofitFactory
 import com.ambiback.manager.data.network.UdpDiscoveryService
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -22,7 +25,8 @@ import javax.inject.Singleton
 class DeviceRepository @Inject constructor(
     private val discoveryService: UdpDiscoveryService,
     private val dataStore: DeviceDataStore,
-    private val retrofitFactory: RetrofitFactory
+    private val retrofitFactory: RetrofitFactory,
+    @ApplicationContext private val context: Context
 ) {
 
     /** Returns a Flow that emits each device found during a UDP broadcast scan. */
@@ -64,7 +68,7 @@ class DeviceRepository @Inject constructor(
      */
     suspend fun verifyDevice(deviceIp: String): Result<Device> = runCatchingFriendly {
         val config = retrofitFactory.createService(deviceIp).getConfig()
-        require(config.deviceId.isNotBlank()) { "Controller at $deviceIp did not return a valid device ID." }
+        require(config.deviceId.isNotBlank()) { context.getString(R.string.net_err_no_id, deviceIp) }
 
         Device(
             deviceId = config.deviceId,
@@ -98,9 +102,9 @@ class DeviceRepository @Inject constructor(
         }
 
     private fun friendlyMessage(e: Throwable): String = when (e) {
-        is SocketTimeoutException -> "Device did not respond in time. Check that it is powered on and on the same network."
-        is ConnectException -> "Could not connect to the device. It may be offline or the IP address may have changed."
-        is UnknownHostException -> "Invalid device address."
-        else -> e.message?.takeIf { it.isNotBlank() } ?: "An unexpected error occurred."
+        is SocketTimeoutException -> context.getString(R.string.net_err_timeout)
+        is ConnectException -> context.getString(R.string.net_err_connect)
+        is UnknownHostException -> context.getString(R.string.net_err_host)
+        else -> e.message?.takeIf { it.isNotBlank() } ?: context.getString(R.string.net_err_unknown)
     }
 }

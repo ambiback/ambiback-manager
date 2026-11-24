@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ambiback.manager.R
 import com.ambiback.manager.data.usb.EspRomFlasher
 import com.ambiback.manager.data.usb.UsbCommandProtocol
 import com.ambiback.manager.data.usb.UsbConnectionState
@@ -116,22 +117,22 @@ class UsbDeviceViewModel @Inject constructor(
                 val info = UsbCommandProtocol.parseInfoResponse(raw)
                 if (info != null) {
                     _uiState.update { it.copy(deviceInfo = info) }
-                    setStatus(CommandStatus.Success("Device info loaded"))
+                    setStatus(CommandStatus.Success(context.getString(R.string.usb_info_loaded)))
                 } else {
-                    setStatus(CommandStatus.Error("No valid response from device"))
+                    setStatus(CommandStatus.Error(context.getString(R.string.usb_no_response)))
                 }
             } catch (e: Exception) {
-                setStatus(CommandStatus.Error(e.message ?: "Unknown error"))
+                setStatus(CommandStatus.Error(e.message ?: context.getString(R.string.usb_unknown_error)))
             }
         }
     }
 
-    fun resetWifi() = sendSimple(UsbCommandProtocol.buildResetWifiCommand(), "WiFi credentials reset")
+    fun resetWifi() = sendSimple(UsbCommandProtocol.buildResetWifiCommand(), context.getString(R.string.usb_wifi_reset_done))
 
     fun setWifi(ssid: String, password: String) =
-        sendSimple(UsbCommandProtocol.buildSetWifiCommand(ssid, password), "WiFi configuration sent to device")
+        sendSimple(UsbCommandProtocol.buildSetWifiCommand(ssid, password), context.getString(R.string.usb_wifi_sent))
 
-    fun factoryReset() = sendSimple(UsbCommandProtocol.buildFactoryResetCommand(), "Factory reset sent")
+    fun factoryReset() = sendSimple(UsbCommandProtocol.buildFactoryResetCommand(), context.getString(R.string.usb_factory_sent))
 
     /** Stores the firmware zip URI/name selected by the user. */
     fun setSelectedFirmware(uri: Uri, name: String) {
@@ -150,9 +151,9 @@ class UsbDeviceViewModel @Inject constructor(
                 EspRomFlasher(port).flash(context, uri) { progress, status ->
                     _uiState.update { it.copy(flashProgress = progress, flashStatus = status) }
                 }
-                setStatus(CommandStatus.Success("Firmware flashed successfully!"))
+                setStatus(CommandStatus.Success(context.getString(R.string.usb_flash_done)))
             } catch (e: Exception) {
-                setStatus(CommandStatus.Error("Flash failed: ${e.message}"))
+                setStatus(CommandStatus.Error(context.getString(R.string.usb_flash_failed, e.message.orEmpty())))
                 _uiState.update { it.copy(flashProgress = 0f, flashStatus = "") }
             } finally {
                 _uiState.update { it.copy(isFlashing = false) }
@@ -174,7 +175,7 @@ class UsbDeviceViewModel @Inject constructor(
                 usbSerialManager.sendCommand(cmd, timeoutMs = 500)
                 setStatus(CommandStatus.Success(successMsg))
             } catch (e: Exception) {
-                setStatus(CommandStatus.Error(e.message ?: "Unknown error"))
+                setStatus(CommandStatus.Error(e.message ?: context.getString(R.string.usb_unknown_error)))
             }
         }
     }

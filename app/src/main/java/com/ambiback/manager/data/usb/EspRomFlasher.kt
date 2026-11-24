@@ -2,6 +2,7 @@ package com.ambiback.manager.data.usb
 
 import android.content.Context
 import android.net.Uri
+import com.ambiback.manager.R
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.hoho.android.usbserial.driver.UsbSerialPort
@@ -38,18 +39,18 @@ class EspRomFlasher(private val port: UsbSerialPort) {
         onProgress: (progress: Float, status: String) -> Unit
     ) = withContext(Dispatchers.IO) {
         try {
-            onProgress(0f, "Entering bootloader…")
+            onProgress(0f, context.getString(R.string.flash_entering_bootloader))
             port.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
             enterBootloader()
             drainReceiveBuffer()
 
-            onProgress(0.05f, "Syncing with ROM loader…")
-            check(sync()) { "Failed to synchronise with ESP32 ROM bootloader. Check USB cable / device power." }
+            onProgress(0.05f, context.getString(R.string.flash_syncing))
+            check(sync()) { context.getString(R.string.flash_err_sync) }
 
-            onProgress(0.08f, "Attaching SPI flash…")
+            onProgress(0.08f, context.getString(R.string.flash_attaching))
             check(sendCommand(CMD_SPI_ATTACH, ByteArray(8))) { "SPI_ATTACH failed" }
 
-            onProgress(0.10f, "Switching to high-speed baud rate…")
+            onProgress(0.10f, context.getString(R.string.flash_baud))
             val baudCmd = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN)
                 .putInt(921600).putInt(0).array()
             if (sendCommand(CMD_CHANGE_BAUDRATE, baudCmd)) {
@@ -58,7 +59,7 @@ class EspRomFlasher(private val port: UsbSerialPort) {
                 Thread.sleep(50)
             }
 
-            onProgress(0.12f, "Reading firmware package…")
+            onProgress(0.12f, context.getString(R.string.flash_reading))
             val partitions = readZipPartitions(context, zipUri)
             val grandTotal = partitions.sumOf { it.data.size }.toLong().coerceAtLeast(1L)
             var flashedSoFar = 0L
@@ -71,7 +72,7 @@ class EspRomFlasher(private val port: UsbSerialPort) {
 
                 onProgress(
                     (0.12f + 0.85f * (flashedSoFar.toFloat() / grandTotal)).coerceIn(0f, 0.97f),
-                    "Erasing at 0x${partition.offset.toString(16).uppercase()}…"
+                    context.getString(R.string.flash_erasing, partition.offset.toString(16).uppercase())
                 )
 
                 val beginData = ByteBuffer.allocate(16).order(ByteOrder.LITTLE_ENDIAN)
@@ -98,14 +99,14 @@ class EspRomFlasher(private val port: UsbSerialPort) {
                     val progressBytes = flashedSoFar + (seq + 1).toLong() * blockSize
                     onProgress(
                         (0.12f + 0.85f * (progressBytes.toFloat() / grandTotal)).coerceIn(0f, 0.97f),
-                        "Flashing ${idx + 1}/${partitions.size} — block ${seq + 1}/$numBlocks"
+                        context.getString(R.string.flash_writing, idx + 1, partitions.size, seq + 1, numBlocks)
                     )
                 }
 
                 // Best-effort MD5 verification against the ROM loader.
                 onProgress(
                     (0.12f + 0.85f * ((flashedSoFar + partition.data.size).toFloat() / grandTotal)).coerceIn(0f, 0.97f),
-                    "Verifying partition ${idx + 1}/${partitions.size}…"
+                    context.getString(R.string.flash_verifying, idx + 1, partitions.size)
                 )
                 verifyFlashMd5(partition.offset, partition.data)
 
@@ -116,8 +117,8 @@ class EspRomFlasher(private val port: UsbSerialPort) {
                 flashedSoFar += partition.data.size
             }
 
-            onProgress(0.98f, "Rebooting device…")
-            onProgress(1f, "Flash complete!")
+            onProgress(0.98f, context.getString(R.string.flash_rebooting))
+            onProgress(1f, context.getString(R.string.flash_complete))
         } finally {
             // Always leave the chip out of download mode, even on failure.
             try {
@@ -364,7 +365,7 @@ class EspRomFlasher(private val port: UsbSerialPort) {
                     entry = zip.nextEntry
                 }
             }
-        } ?: throw IllegalArgumentException("Cannot open firmware zip file")
+        } ?: throw IllegalArgumentException(context.getString(R.string.flash_err_open))
 
         val configs: List<PartitionConfig> = entries["flash_config.json"]?.let { jsonBytes ->
             try {
@@ -381,8 +382,10 @@ class EspRomFlasher(private val port: UsbSerialPort) {
             entries[cfg.file]?.let { FlashPartition(cfg.offset, it) }
         }
         check(result.isNotEmpty()) {
-            "No recognisable partition files found in zip. " +
-                    "Expected: bootloader_qio_80m.bin, partitions.bin, boot_app0.bin, firmware.bin"
+            context.getString(
+                R.string.flash_err_no_partitions,
+                "bootloader_qio_80m.bin, partitions.bin, boot_app0.bin, firmware.bin"
+            )
         }
         return result
     }
