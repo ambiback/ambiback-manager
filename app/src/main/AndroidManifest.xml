@@ -13,7 +13,9 @@
     <!-- android:required="false" so the app remains installable on non-OTG phones -->
     <uses-feature android:name="android.hardware.usb.host" android:required="false" />
 
-    <!-- Location — required on API 29–32 to read the phone's current WiFi SSID / scan -->
+    <!-- Location — required on API 29–32 to read the phone's current WiFi SSID / scan.
+         Android 12+ ignores a FINE request unless COARSE is requested with it. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- Android 13+ nearby WiFi devices — preferred over location for WiFi scans -->
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES"
