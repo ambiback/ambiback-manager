@@ -49,30 +49,51 @@ data class DeviceConfig(
     @SerializedName("ambienthealthintensity") val ambientHealthIntensity: Int = 80,
     // Frame timing
     @SerializedName("framelength") val frameLength: Int = 60,
-    @SerializedName("framesmoothing") val frameSmoothing: Int = 4
-)
+    @SerializedName("framesmoothing") val frameSmoothing: Int = 4,
+    /** Current LED mode, see [LedMode]. */
+    @SerializedName("ledmode") val ledMode: Int = LedMode.AMBIENT,
+    /** Only camera controllers report this; used like the web UI to detect a camera. */
+    @SerializedName("cammode") val camMode: String? = null
+) {
+    val hasCamera: Boolean get() = camMode != null
+}
 
 /**
  * Live runtime status returned by GET /getstatusasjson.
+ * Field names follow the firmware (`handleGetStatusAsJson`).
  */
 data class DeviceStatus(
     @SerializedName("devicename") val deviceName: String = "",
     @SerializedName("deviceip") val deviceIp: String = "",
-    @SerializedName("ledmode") val ledMode: Int = 0,
-    @SerializedName("ledstatus") val ledStatus: Int = 0,
-    @SerializedName("wifiname") val wifiName: String = "",
-    @SerializedName("wifisignal") val wifiSignal: Int = 0,
-    @SerializedName("fpsledout") val fpsLedOut: Int = 0,
-    @SerializedName("fpsnetin") val fpsNetIn: Int = 0,
+    /** Mode name such as "Off", "Video", "Ambient", "Cam" or "Relay". */
+    @SerializedName("modestatus") val modeName: String = "",
+    @SerializedName("wifinetwork") val wifiName: String = "",
+    @SerializedName("wifirssi") val wifiSignal: Int = 0,
+    @SerializedName("ledfps") val fpsLedOut: Int = 0,
+    @SerializedName("netfps") val fpsNetIn: Int = 0,
     @SerializedName("freeheap") val freeHeap: Int = 0
-)
+) {
+    /** The LED mode as a number, or null when the firmware reports a mode this app does not know. */
+    val ledMode: Int? get() = LedMode.fromName(modeName)
+}
 
-/** Named LED mode values used by /setcolormode?mode=<value> */
+/** LED mode values used by /setcolormode?mode=<value> (firmware `LED_MODE_*`). */
 object LedMode {
     const val OFF = 0
-    const val AMBIENT = 2   // confirmed via web UI (AmbientPage calls setColorMode(2))
-    const val VIDEO = 4
-    const val CAM = 5
+    const val VIDEO = 1
+    const val AMBIENT = 2
+    const val CAM = 3
+    const val RELAY = 4
+    const val DEMO = 5
+
+    fun fromName(name: String): Int? = when (name.trim().lowercase()) {
+        "off" -> OFF
+        "video" -> VIDEO
+        "ambient" -> AMBIENT
+        "cam" -> CAM
+        "relay" -> RELAY
+        else -> null
+    }
 }
 
 // ---------------------------------------------------------------------------

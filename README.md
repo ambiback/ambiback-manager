@@ -6,6 +6,8 @@ Android app for setting up and controlling AmbiBack devices. It finds devices on
 
 It is part of the [AmbiBack project](https://github.com/ambiback) and works with the [AmbiBack firmware](https://github.com/ambiback/ambiback-firmware).
 
+A user guide with screenshots is available in German: [Benutzerhandbuch](docs/BENUTZERHANDBUCH.md).
+
 ## Status
 
 - Version 1.2, Android 8.0 (API 26) or newer.

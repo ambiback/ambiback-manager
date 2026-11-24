@@ -6,6 +6,8 @@ Android-App zum Einrichten und Steuern von AmbiBack-Geräten. Sie findet Geräte
 
 Sie gehört zum [AmbiBack-Projekt](https://github.com/ambiback) und arbeitet mit der [AmbiBack-Firmware](https://github.com/ambiback/ambiback-firmware).
 
+Wie die App bedient wird, steht mit Bildern im [Benutzerhandbuch](docs/BENUTZERHANDBUCH.md).
+
 ## Status
 
 - Version 1.2, Android 8.0 (API 26) oder neuer.

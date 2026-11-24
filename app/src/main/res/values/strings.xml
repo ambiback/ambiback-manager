@@ -24,7 +24,81 @@
     <string name="no_devices_hint">Pull down to scan, or tap + to add a new AmbiBack controller.</string>
     <string name="unnamed_device">Unnamed Device</string>
     <string name="unverified">Unverified</string>
+    <string name="not_found">Not found</string>
     <string name="forget_device">Forget device</string>
+    <string name="device_removed">Removed %1$s</string>
+    <string name="invalid_ip">Enter a valid IP address, for example 192.168.0.20</string>
+    <string name="add_by_ip_failed">No AmbiBack controller answered at %1$s. %2$s</string>
+    <string name="refresh">Refresh</string>
+    <string name="retry">Retry</string>
+    <string name="open_in_browser">Open in browser</string>
+
+    <!-- LED modes -->
+    <string name="mode_off">Off</string>
+    <string name="mode_video">Video</string>
+    <string name="mode_ambient">Ambient</string>
+    <string name="mode_camera">Camera</string>
+    <string name="mode_relay">Relay</string>
+    <string name="mode_demo">Demo</string>
+
+    <!-- Device screen -->
+    <string name="tab_quick_control">Quick Control</string>
+    <string name="tab_full_control">Full Control</string>
+    <string name="tab_web_interface">Web Interface</string>
+    <string name="config_load_failed">Could not load the controller settings.</string>
+    <string name="web_load_failed">Could not open the controller page at %1$s. Check that it is switched on and on the same network.</string>
+    <string name="section_power">Power</string>
+    <string name="leds_on">LEDs on</string>
+    <string name="leds_off">LEDs off</string>
+    <string name="section_mode">Mode</string>
+    <string name="section_brightness">Brightness</string>
+    <string name="section_color">Solid color</string>
+    <string name="color_hue">Hue</string>
+    <string name="color_saturation">Saturation</string>
+    <string name="color_brightness">Brightness</string>
+    <string name="color_selected">Selected color</string>
+    <string name="section_scenes">Scenes</string>
+    <string name="scenes_desc">Animated light scenes. Solid shows the color chosen above.</string>
+    <string name="scene_speed">Speed</string>
+    <string name="scene_intensity">Intensity</string>
+    <string name="section_health">Health scenes</string>
+    <string name="health_desc">Pulsing light modes inspired by brain-wave research. Not medical advice.</string>
+    <string name="health_depth">Pulse depth</string>
+    <string name="health_depth_desc">Low keeps the light bright between pulses, high fades it to black.</string>
+    <string name="flicker_title">Flickering light</string>
+    <string name="flicker_text">%1$s makes the LEDs flicker quickly. Fast flicker can trigger seizures in people with photosensitive epilepsy. Start it anyway?</string>
+    <string name="flicker_start">Start</string>
+    <string name="expand">Expand</string>
+    <string name="collapse">Collapse</string>
+    <string name="status_title">Status</string>
+    <string name="status_wifi">Wi-Fi</string>
+    <string name="status_led_fps">LED FPS</string>
+    <string name="status_net_fps">Net FPS</string>
+    <string name="status_heap">Heap</string>
+    <string name="device_key_title">Device key</string>
+    <string name="device_key_desc">Needed for reboot, WPS and firmware updates in the browser.</string>
+    <string name="show">Show</string>
+    <string name="hide">Hide</string>
+    <string name="copy">Copy</string>
+    <string name="device_key_copied">Device key copied</string>
+
+    <!-- Scenes -->
+    <string name="scene_solid">Solid</string>
+    <string name="scene_fire">Fire</string>
+    <string name="scene_christmas">Christmas</string>
+    <string name="scene_halloween">Halloween</string>
+    <string name="scene_ocean">Ocean</string>
+    <string name="scene_sunset">Sunset</string>
+    <string name="scene_aurora">Aurora</string>
+    <string name="scene_candle">Candle</string>
+    <string name="scene_rainbow">Rainbow</string>
+    <string name="scene_thunderstorm">Thunderstorm</string>
+    <string name="scene_party2">Party 2</string>
+    <string name="scene_party">Party</string>
+    <string name="scene_gamma40">40 Hz Gamma</string>
+    <string name="scene_alpha10">10 Hz Alpha</string>
+    <string name="scene_gamma34_red">34 Hz Gamma (Red)</string>
+    <string name="scene_red_evening">Evening red light</string>
 
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>

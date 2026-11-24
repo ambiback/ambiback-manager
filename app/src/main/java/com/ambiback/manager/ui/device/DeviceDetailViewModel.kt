@@ -36,7 +36,11 @@ data class DeviceDetailUiState(
     val statusState: UiState<DeviceStatus> = UiState.Loading,
     val sendingControls: Set<SendingControl> = emptySet(),
     val actionError: String? = null,
-    val claimKey: String? = null
+    val claimKey: String? = null,
+    /** True while a manual refresh reloads config and status without clearing the form. */
+    val isRefreshing: Boolean = false,
+    /** Bumped on every status reply, so optimistic switch/chip state resyncs even if nothing changed. */
+    val statusVersion: Int = 0
 ) {
     val isSending: Boolean get() = sendingControls.isNotEmpty()
 }
@@ -64,29 +68,61 @@ class DeviceDetailViewModel @Inject constructor(
     fun loadConfig() {
         viewModelScope.launch {
             _uiState.update { it.copy(configState = UiState.Loading) }
-            repository.getConfig(deviceIp).fold(
-                onSuccess = { config ->
-                    val claimKey = claimKeyStore.get(config.deviceMac)
-                    _uiState.update { it.copy(configState = UiState.Success(config), claimKey = claimKey) }
-                },
-                onFailure = { e ->
-                    _uiState.update { it.copy(configState = UiState.Error(e.message ?: "Failed to load config")) }
-                }
-            )
+            fetchConfig()
         }
     }
 
     fun loadStatus() {
+        viewModelScope.launch { fetchStatus() }
+    }
+
+    /**
+     * Reload config and status. Keeps the current form on screen; a failed refresh of a
+     * loaded config is reported as a message instead of replacing the controls.
+     */
+    fun refresh() {
+        if (_uiState.value.isRefreshing) return
         viewModelScope.launch {
-            repository.getStatus(deviceIp).fold(
-                onSuccess = { status ->
-                    _uiState.update { it.copy(statusState = UiState.Success(status)) }
-                },
-                onFailure = { e ->
-                    _uiState.update { it.copy(statusState = UiState.Error(e.message ?: "Failed to load status")) }
+            _uiState.update { it.copy(isRefreshing = true) }
+            try {
+                val hadConfig = _uiState.value.configState is UiState.Success
+                val configOk = fetchConfig(keepLoadedOnError = hadConfig)
+                fetchStatus()
+                if (!configOk && hadConfig) {
+                    _uiState.update { it.copy(actionError = REFRESH_FAILED) }
                 }
-            )
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
+            }
         }
+    }
+
+    private suspend fun fetchConfig(keepLoadedOnError: Boolean = false): Boolean =
+        repository.getConfig(deviceIp).fold(
+            onSuccess = { config ->
+                val claimKey = claimKeyStore.get(config.deviceMac)
+                _uiState.update { it.copy(configState = UiState.Success(config), claimKey = claimKey) }
+                true
+            },
+            onFailure = { e ->
+                if (!keepLoadedOnError) {
+                    _uiState.update { it.copy(configState = UiState.Error(e.message ?: "Failed to load config")) }
+                }
+                false
+            }
+        )
+
+    private suspend fun fetchStatus() {
+        repository.getStatus(deviceIp).fold(
+            onSuccess = { status -> applyStatus(status) },
+            onFailure = { e ->
+                _uiState.update { it.copy(statusState = UiState.Error(e.message ?: "Failed to load status")) }
+            }
+        )
+    }
+
+    private fun applyStatus(status: DeviceStatus) {
+        _uiState.update { it.copy(statusState = UiState.Success(status), statusVersion = it.statusVersion + 1) }
     }
 
     /** Poll device status every [intervalMs] while the Quick Control tab is visible. */
@@ -95,9 +131,9 @@ class DeviceDetailViewModel @Inject constructor(
         statusPollJob = viewModelScope.launch {
             while (isActive) {
                 delay(intervalMs)
-                repository.getStatus(deviceIp).onSuccess { status ->
-                    _uiState.update { it.copy(statusState = UiState.Success(status)) }
-                }
+                // Skip a poll while a command is in flight; it would undo the optimistic UI.
+                if (_uiState.value.isSending) continue
+                repository.getStatus(deviceIp).onSuccess { status -> applyStatus(status) }
             }
         }
     }
@@ -107,15 +143,15 @@ class DeviceDetailViewModel @Inject constructor(
         statusPollJob = null
     }
 
-    fun setMode(mode: Int) = sendCommand(SendingControl.Mode) {
+    fun setMode(mode: Int) = sendCommand(SendingControl.Mode, refreshStatus = true) {
         repository.setColorMode(deviceIp, mode)
     }
 
-    fun turnOff() = sendCommand(SendingControl.Power) {
+    fun turnOff() = sendCommand(SendingControl.Power, refreshStatus = true) {
         repository.setColorMode(deviceIp, LedMode.OFF)
     }
 
-    fun turnOn(mode: Int = LedMode.AMBIENT) = sendCommand(SendingControl.Power) {
+    fun turnOn(mode: Int = LedMode.AMBIENT) = sendCommand(SendingControl.Power, refreshStatus = true) {
         repository.setColorMode(deviceIp, mode)
     }
 
@@ -125,18 +161,20 @@ class DeviceDetailViewModel @Inject constructor(
     }
 
     /**
-     * Set ambient color from a Compose [Color].
-     * Converts to WWRRGGBB hex (W=0 since LEDs here are RGB only).
+     * Show a solid color: switches to Ambient with the Solid scene first, because a running
+     * scene would otherwise paint over the color. Sent as WWRRGGBB hex (W=0, RGB strips).
      */
-    fun setColor(color: Color) = sendCommand(SendingControl.Color) {
+    fun setColor(color: Color) = sendCommand(SendingControl.Color, refreshStatus = true) {
         val r = (color.red * 255).toInt().coerceIn(0, 255)
         val g = (color.green * 255).toInt().coerceIn(0, 255)
         val b = (color.blue * 255).toInt().coerceIn(0, 255)
         val hex = "00%02X%02X%02X".format(r, g, b)
+        repository.setColorMode(deviceIp, LedMode.AMBIENT).onFailure { return@sendCommand Result.failure(it) }
+        repository.setParam(deviceIp, "setambientpreset", SOLID_PRESET).onFailure { return@sendCommand Result.failure(it) }
         repository.setColor(deviceIp, hex)
     }
 
-    fun setPreset(preset: Int) = sendCommand(SendingControl.Preset) {
+    fun setPreset(preset: Int) = sendCommand(SendingControl.Preset, refreshStatus = true) {
         val modeResult = repository.setColorMode(deviceIp, LedMode.AMBIENT)
         if (modeResult.isFailure) return@sendCommand modeResult
         repository.setParam(deviceIp, "setambientpreset", preset)
@@ -161,19 +199,39 @@ class DeviceDetailViewModel @Inject constructor(
         _uiState.update { it.copy(actionError = null) }
     }
 
-    private fun sendCommand(control: SendingControl, block: suspend () -> Result<Unit>) {
+    /**
+     * @param refreshStatus reload the status shortly after success, so the power switch and
+     * mode chips show what the controller applied (it switches modes asynchronously).
+     */
+    private fun sendCommand(
+        control: SendingControl,
+        refreshStatus: Boolean = false,
+        block: suspend () -> Result<Unit>
+    ) {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(sendingControls = it.sendingControls + control, actionError = null)
             }
-            try {
-                block().onFailure { e ->
-                    _uiState.update { it.copy(actionError = e.message) }
-                }
+            val result = try {
+                block()
             } finally {
                 _uiState.update { it.copy(sendingControls = it.sendingControls - control) }
             }
+            result.onFailure { e ->
+                _uiState.update { it.copy(actionError = e.message) }
+                fetchStatus()
+            }
+            if (result.isSuccess && refreshStatus) {
+                delay(STATUS_SETTLE_MS)
+                fetchStatus()
+            }
         }
+    }
+
+    private companion object {
+        const val SOLID_PRESET = 0
+        const val STATUS_SETTLE_MS = 800L
+        const val REFRESH_FAILED = "Could not refresh. Showing the last loaded values."
     }
 
     override fun onCleared() {
