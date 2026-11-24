@@ -1,0 +1,188 @@
+name: Release
+
+# Pushing a tag like v1.3 builds a signed APK and AAB and publishes them as a GitHub release.
+# Signing follows legacy-solar-monitor: the keystore and its passwords come from repository
+# secrets (see "Release" in README.md).
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Require tag commit on main
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "Refusing to release: $GITHUB_SHA is not on origin/main"
+            exit 1
+          fi
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+
+      # gradle.properties pins a local Windows JDK, so every Gradle call overrides it.
+      - name: Compute version
+        id: vars
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          tag_version="${GITHUB_REF_NAME#v}"
+          version_code=""
+          version_name=""
+          while IFS= read -r line; do
+            case "$line" in
+              VERSION_CODE=*) version_code="${line#VERSION_CODE=}" ;;
+              VERSION_NAME=*) version_name="${line#VERSION_NAME=}" ;;
+            esac
+          done < <(./gradlew -q -Dorg.gradle.java.home="$JAVA_HOME" :app:printReleaseVersion)
+          if [ -z "$version_code" ] || [ -z "$version_name" ]; then
+            echo "Gradle did not print VERSION_CODE/VERSION_NAME"
+            exit 1
+          fi
+          if [ "$tag_version" != "$version_name" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match versionName ${version_name}"
+            exit 1
+          fi
+          max_previous_code=""
+          max_previous_tag=""
+          while IFS= read -r candidate; do
+            [ "$candidate" = "$GITHUB_REF_NAME" ] && continue
+            # build.gradle has CRLF line endings, so strip \r before comparing.
+            candidate_code="$(git show "${candidate}:app/build.gradle" | tr -d '\r' |
+              awk '$1 == "versionCode" { print $2; exit }')"
+            if ! [[ "$candidate_code" =~ ^[0-9]+$ ]]; then
+              echo "Could not read versionCode from ${candidate}"
+              exit 1
+            fi
+            if [ -z "$max_previous_code" ] || [ "$candidate_code" -gt "$max_previous_code" ]; then
+              max_previous_code="$candidate_code"
+              max_previous_tag="$candidate"
+            fi
+          done < <(git tag --list 'v*')
+          if [ -n "$max_previous_code" ] && [ "$version_code" -le "$max_previous_code" ]; then
+            echo "versionCode ${version_code} must be greater than ${max_previous_code} from ${max_previous_tag}"
+            exit 1
+          fi
+          base="ambiback-manager-${version_name}-vc${version_code}"
+          {
+            echo "version_name=${version_name}"
+            echo "version_code=${version_code}"
+            echo "apk_name=${base}.apk"
+            echo "aab_name=${base}.aab"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run unit tests and lint
+        run: ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" --no-daemon :app:testDebugUnitTest :app:lintDebug
+
+      - name: Check signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "Missing secret: $name"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "Set the repository secrets listed under \"Release\" in README.md"
+            exit 1
+          fi
+
+      - name: Decode keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          test -s "$RUNNER_TEMP/upload.jks"
+
+      - name: Build signed APK and AAB
+        env:
+          RELEASE_STORE_FILE: ${{ runner.temp }}/upload.jks
+          RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" --no-daemon :app:assembleRelease :app:bundleRelease
+
+      - name: Collect and verify artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          apk="app/build/outputs/apk/release/app-release.apk"
+          aab="app/build/outputs/bundle/release/app-release.aab"
+          test -f "$apk"
+          test -f "$aab"
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          "$apksigner" verify --print-certs "$apk"
+          cp "$apk" "dist/${{ steps.vars.outputs.apk_name }}"
+          cp "$aab" "dist/${{ steps.vars.outputs.aab_name }}"
+
+      - name: Generate APK QR code
+        env:
+          APK_NAME: ${{ steps.vars.outputs.apk_name }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qrencode
+          qrencode -o dist/qr-apk.png -s 8 -m 4 \
+            "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${APK_NAME}"
+
+      - name: Write release description
+        env:
+          VERSION_NAME: ${{ steps.vars.outputs.version_name }}
+          VERSION_CODE: ${{ steps.vars.outputs.version_code }}
+          APK_NAME: ${{ steps.vars.outputs.apk_name }}
+        run: |
+          set -euo pipefail
+          base="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}"
+          {
+            echo "AmbiBack Manager ${VERSION_NAME} (versionCode ${VERSION_CODE}) for Android 8.0 or newer."
+            echo
+            echo "**Install:** download [\`${APK_NAME}\`](${base}/${APK_NAME}) on your phone, or scan the code:"
+            echo
+            echo "<img src=\"${base}/qr-apk.png\" width=\"180\" alt=\"QR code for the APK download\">"
+            echo
+            echo "The \`.aab\` file is for Google Play uploads. User guide (German): [docs/BENUTZERHANDBUCH.md](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/docs/BENUTZERHANDBUCH.md)."
+          } > dist/release-notes.md
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          body_path: dist/release-notes.md
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/${{ steps.vars.outputs.apk_name }}
+            dist/${{ steps.vars.outputs.aab_name }}
+            dist/qr-apk.png

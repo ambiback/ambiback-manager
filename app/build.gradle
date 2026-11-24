@@ -14,6 +14,31 @@ if (apPasswordSeed < 0L || apPasswordSeed > 0xFFFFFFFFL) {
     throw new GradleException('ambibackApPasswordSeed must be a 32-bit unsigned value')
 }
 
+// Release signing, same scheme as legacy-solar-monitor: values come from local.properties
+// (release.store.file, ...) or the RELEASE_* environment variables the release workflow sets.
+// Without them the release APK stays unsigned.
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream { localProps.load(it) }
+}
+def localOrEnv = { String key, String envName ->
+    (localProps.getProperty(key) ?: System.getenv(envName) ?: '').trim()
+}
+def releaseStorePath = localOrEnv('release.store.file', 'RELEASE_STORE_FILE')
+def releaseStorePassword = localOrEnv('release.store.password', 'RELEASE_STORE_PASSWORD')
+def releaseKeyAlias = localOrEnv('release.key.alias', 'RELEASE_KEY_ALIAS')
+def releaseKeyPassword = localOrEnv('release.key.password', 'RELEASE_KEY_PASSWORD')
+def releaseSigningParts = [releaseStorePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword]
+def hasReleaseSigning = releaseSigningParts.every { !it.isEmpty() }
+if (!hasReleaseSigning && releaseSigningParts.any { !it.isEmpty() }) {
+    throw new GradleException(
+        'Incomplete release signing. Set release.store.file / release.store.password / ' +
+            'release.key.alias / release.key.password in local.properties, or RELEASE_STORE_FILE, ' +
+            'RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS and RELEASE_KEY_PASSWORD together.'
+    )
+}
+
 android {
     namespace 'com.ambiback.manager'
     compileSdk 34
@@ -22,8 +47,8 @@ android {
         applicationId "com.ambiback.manager"
         minSdk 26
         targetSdk 34
-        versionCode 3
-        versionName "1.2"
+        versionCode 4
+        versionName "1.3"
         buildConfigField "long", "AP_PASSWORD_SEED", "${apPasswordSeed}L"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -32,11 +57,26 @@ android {
         }
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                def store = new File(releaseStorePath)
+                storeFile store.isAbsolute() ? store : rootProject.file(releaseStorePath)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
@@ -183,6 +223,18 @@ tasks.register('packageFullControlUi') {
 
 tasks.named('preBuild') {
     dependsOn 'packageFullControlUi'
+}
+
+// Read by the release workflow to check the tag against the app version.
+tasks.register('printReleaseVersion') {
+    group = 'ambiback'
+    description = 'Prints VERSION_CODE and VERSION_NAME of the app.'
+    def code = android.defaultConfig.versionCode
+    def name = android.defaultConfig.versionName
+    doLast {
+        println "VERSION_CODE=${code}"
+        println "VERSION_NAME=${name}"
+    }
 }
 
 dependencies {

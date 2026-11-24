@@ -31,14 +31,17 @@ jobs:
           -Dorg.gradle.java.home="$JAVA_HOME"
           --no-daemon
           :app:testDebugUnitTest
+          :app:lintDebug
           :app:assembleDebug
           :app:assembleRelease
-      - name: Upload test reports
+      - name: Upload test and lint reports
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: test-reports
-          path: app/build/reports/tests/
+          path: |
+            app/build/reports/tests/
+            app/build/reports/lint-results-debug.*
           if-no-files-found: ignore
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
