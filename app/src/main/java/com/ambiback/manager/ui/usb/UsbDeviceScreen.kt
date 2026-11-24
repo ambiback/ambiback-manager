@@ -128,9 +128,11 @@ fun UsbDeviceScreen(
                     == PackageManager.PERMISSION_GRANTED
         )
     }
+    // Android 12+ ignores a FINE request that comes without COARSE.
     val locationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        val granted = results[Manifest.permission.ACCESS_FINE_LOCATION] == true
         hasLocationPermission = granted
         if (granted) viewModel.loadCurrentSsid()
     }
@@ -284,7 +286,14 @@ fun UsbDeviceScreen(
                 // The permission only pre-fills the SSID; typing it by hand always works.
                 if (!hasLocationPermission) {
                     PermissionExplanationCard(
-                        onGrantClick = { locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }
+                        onGrantClick = {
+                            locationPermissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    Manifest.permission.ACCESS_FINE_LOCATION
+                                )
+                            )
+                        }
                     )
                     Spacer(Modifier.height(12.dp))
                 }

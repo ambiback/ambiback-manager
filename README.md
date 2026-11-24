@@ -10,8 +10,8 @@ A user guide with screenshots is available in German: [Benutzerhandbuch](docs/BE
 
 ## Status
 
-- Version 1.2, Android 8.0 (API 26) or newer.
-- The debug build and the 15 unit tests passed during the migration.
+- Version 1.3, Android 8.0 (API 26) or newer.
+- CI builds the app and runs the unit tests and lint on every change.
 - **The app has not been tested on a real device or with real AmbiBack hardware.**
 - AmbiBack devices have not been on sale for around five years. This repository is for DIY use and further development, with no product support. More at [ambiback.de](https://www.ambiback.de/).
 
@@ -53,6 +53,28 @@ If your firmware uses a custom `AMBIBACK_AP_PASSWORD_SEED`, build the app with t
 ```sh
 ./gradlew assembleDebug -PambibackApPasswordSeed=0x12345678
 ```
+
+## Release
+
+Releases are built by GitHub Actions. Raise `versionCode` and `versionName` in `app/build.gradle`, merge to `main`, then push a matching tag:
+
+```sh
+git tag v1.3
+git push origin v1.3
+```
+
+The workflow checks that the tag is on `main`, matches `versionName` and has a higher `versionCode` than the previous tag. It then runs the tests and lint, builds a signed APK and AAB, and publishes them with a QR code as a GitHub release.
+
+Signing uses the same scheme as [legacy-solar-monitor](https://github.com/alorbach/legacy-solar-monitor). Set these repository secrets once:
+
+| Secret | Content |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | The keystore file, Base64-encoded |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
+| `ANDROID_KEY_ALIAS` | Key alias |
+| `ANDROID_KEY_PASSWORD` | Key password |
+
+To sign a local release build, put `release.store.file`, `release.store.password`, `release.key.alias` and `release.key.password` in `local.properties`. Without them `assembleRelease` produces an unsigned APK.
 
 ## License
 

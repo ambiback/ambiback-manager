@@ -20,5 +20,9 @@ build_error.log
 build_output.txt
 *.main.kts
 
+# Signing keys (release signing reads them via local.properties or CI secrets)
+*.jks
+*.keystore
+
 # IDE project files
 /.idea/
